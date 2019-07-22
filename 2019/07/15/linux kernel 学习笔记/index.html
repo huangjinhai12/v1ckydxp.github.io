@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="linux kernel,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="这篇文章是我看Linux Kernel Exploitation的过程中整理的笔记。 Basic Exploitation Strategy The Vulnerabilities最容易找到漏洞的地方是在Loadable Kernel Modules(LKMs)里面，它的中文名为可加载内核模块，主要作用是用来扩展linux的内核功能。LKM的优点在于可以动态地加载到内存中，无须重新编译内核。因为L">
+<meta name="keywords" content="linux kernel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux kernel 学习笔记 -- Linux Kernel Exploitation">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/07/15/linux kernel 学习笔记/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="这篇文章是我看Linux Kernel Exploitation的过程中整理的笔记。 Basic Exploitation Strategy The Vulnerabilities最容易找到漏洞的地方是在Loadable Kernel Modules(LKMs)里面，它的中文名为可加载内核模块，主要作用是用来扩展linux的内核功能。LKM的优点在于可以动态地加载到内存中，无须重新编译内核。因为L">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/Linux-kernel-学习笔记/1.jpg">
+<meta property="og:updated_time" content="2019-07-17T19:11:24.091Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux kernel 学习笔记 -- Linux Kernel Exploitation">
+<meta name="twitter:description" content="这篇文章是我看Linux Kernel Exploitation的过程中整理的笔记。 Basic Exploitation Strategy The Vulnerabilities最容易找到漏洞的地方是在Loadable Kernel Modules(LKMs)里面，它的中文名为可加载内核模块，主要作用是用来扩展linux的内核功能。LKM的优点在于可以动态地加载到内存中，无须重新编译内核。因为L">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/Linux-kernel-学习笔记/1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/07/15/linux kernel 学习笔记/">
+
+
+
+
+
+  <title>linux kernel 学习笔记 -- Linux Kernel Exploitation | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/07/15/linux kernel 学习笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">linux kernel 学习笔记 -- Linux Kernel Exploitation</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-15T00:00:00+08:00">
+                2019-07-15
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-18T03:11:24+08:00">
+                2019-07-18
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux-kernel/" itemprop="url" rel="index">
+                    <span itemprop="name">linux-kernel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  846
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  3
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这篇文章是我看<a href="https://github.com/ctf-wiki/ctf-wiki/blob/master/docs/pwn/linux/kernel/ref/13_lecture.pdf" target="_blank" rel="noopener">Linux Kernel Exploitation</a>的过程中整理的笔记。</p>
+<h3 id="Basic-Exploitation-Strategy-The-Vulnerabilities"><a href="#Basic-Exploitation-Strategy-The-Vulnerabilities" class="headerlink" title="Basic Exploitation Strategy The Vulnerabilities"></a>Basic Exploitation Strategy The Vulnerabilities</h3><p>最容易找到漏洞的地方是在<code>Loadable Kernel Modules(LKMs)</code>里面，它的中文名为可加载内核模块，主要作用是用来扩展linux的内核功能。LKM的优点在于可以动态地加载到内存中，无须重新编译内核。因为<code>LKMs</code>就类似一个可执行文件，不过它运行在内核空间。<br>常见的有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt; Device Drivers</span><br><span class="line">&gt; Filesystem Drivers</span><br><span class="line">&gt; Networking Drivers</span><br><span class="line">&gt; Executable Interpreters</span><br><span class="line">&gt; Kernel Extensions</span><br><span class="line">&gt; (rookits :P)</span><br></pre></td></tr></table></figure></p>
+<p>在Linux中常见的几个作用于LKMs的指令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">insmod       ---&gt;     插入一个模块到运行的内核当中</span><br><span class="line">rmmod        ---&gt;     从运行的内核中删除一个模块</span><br><span class="line">lsmod        ---&gt;     列出当前已经加载的模块</span><br></pre></td></tr></table></figure></p>
+<p>一些常见的库函数调用有时会不同，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">printf()     ---&gt;     printk()</span><br><span class="line">memcpy()     ---&gt;     copy_from_user()/copy_to_user()</span><br><span class="line">malloc()     ---&gt;     kmalloc()</span><br><span class="line">free()       ---&gt;     kfree()</span><br><span class="line">......</span><br></pre></td></tr></table></figure></p>
+<h3 id="Basic-Exploitation-Strategy-Returning-To-Userspace"><a href="#Basic-Exploitation-Strategy-Returning-To-Userspace" class="headerlink" title="Basic  Exploitation Strategy  Returning To Userspace"></a>Basic  Exploitation Strategy  Returning To Userspace</h3><p>在内核空间，有些操作要比用户空间复杂很多，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; 修改文件系统</span><br><span class="line">&gt; 创建线程</span><br><span class="line">&gt; 创建网络连接</span><br></pre></td></tr></table></figure></p>
+<p>用如下指令可以安全的从内核态返回到用户态。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">push $SS_USER_VALUE</span><br><span class="line">push $USERLAND_STACK</span><br><span class="line">push $USERLAND_EFLAGS</span><br><span class="line">push $CS_USER_VALUE</span><br><span class="line">push $USERLAND_FUNCTION_ADDRESS</span><br><span class="line">swapgs</span><br><span class="line">iretq</span><br></pre></td></tr></table></figure></p>
+<p>还可以通过劫持执行流程，让内核自己返回到用户态。比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; 覆盖函数指针</span><br><span class="line">&gt; 修改系统调用表</span><br><span class="line">&gt; UAF</span><br></pre></td></tr></table></figure></p>
+<p>在这个过程中要特别小心不要破坏内核状态，任何的 <code>crash</code>都会导致重启。</p>
+<h3 id="Linux-Kernel-保护机制"><a href="#Linux-Kernel-保护机制" class="headerlink" title="Linux Kernel 保护机制"></a>Linux Kernel 保护机制</h3><h4 id="MMAP-MIN-ADDR"><a href="#MMAP-MIN-ADDR" class="headerlink" title="MMAP_MIN_ADDR"></a>MMAP_MIN_ADDR</h4><p><code>MMAP_MIN_ADDR</code>保护机制不允许程序分配低内存地址，可以用来防御<code>null pointer dereferences</code>。这里引用一张Linux Kernel Exploitation中的图来说明：</p>
+<p><img src="/images/Linux-kernel-学习笔记/1.jpg" alt="linux"></p>
+<p>如果没有这个保护，可以进行如下的攻击行为：</p>
+<ol>
+<li>空指针为0，程序可以分配内存到0x000000处。</li>
+<li>程序在内存0x000000写入恶意代码。</li>
+<li>程序触发kernel BUG（）。这里说的BUG()其实是linux kernel中用于拦截内核程序超出预期的行为，属于软件主动汇报异常的一种机制。</li>
+<li>内核执行恶意代码。</li>
+</ol>
+<h4 id="kallsyms"><a href="#kallsyms" class="headerlink" title="kallsyms"></a>kallsyms</h4><p><code>/proc/kallsyms</code>给出内核中所有<code>symbol</code>的地址，通过<code>grep &lt;function_name&gt; /proc/kallsyms</code> 就可以得到对应函数的地址，我们需要这个信息来写可靠的<code>exploit</code>，否则需要自己去泄露这个信息。在低版本的内核中所有用户都可读取其中的内容，高版本的内核中缺少权限的用户读取时会返回0。</p>
+<h4 id="SMEP-SMAP"><a href="#SMEP-SMAP" class="headerlink" title="SMEP/SMAP"></a>SMEP/SMAP</h4><p><strong>SMEP</strong>：管理模式执行保护<br>保护内核是其不允许执行用户空间代码。arm里面叫 PXN(Privilege Execute Never) 。在SMEP保护关闭的情况下，若存在 <code>kernel stack overfolw</code>，可以将内核栈的返回地址覆盖为用户空间的代码片段执行。在开启了<code>SMEP</code>保护下，当前<code>cpu</code>处于<code>ring0</code>模式，当返回到用户态执行时会触发页错误。<br>检查<code>SMEP</code>是否开启:<code>·cat /proc/cpuinfo | grep smep</code></p>
+<p>操作系统是通过<code>CR4</code>寄存器的第20位的值来判断<code>SMEP</code>是否开启。</p>
+<blockquote>
+<p>第20位 = 1时：<code>SMEP</code>开启</p>
+</blockquote>
+<blockquote>
+<p>第20位 = 0时：<code>SMEP</code>关闭</p>
+</blockquote>
+<p>可同通过<code>mov</code>指令给<code>CR4</code>寄存器赋值从而达到关闭<code>SMEP</code>的目的，相关的<code>mov</code>指令可以通过<code>ropper</code>，<code>ROPgadget</code>等工具查找。</p>
+<p><strong>SMAP</strong>：管理模式访问保护<br>禁止内核访问用户空间的数据。arm中叫作PAN(Privileged Access Never)。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/07/15/linux kernel 学习笔记/" title="linux kernel 学习笔记 -- Linux Kernel Exploitation">https://v1ckydxp.github.io/archives/2019/07/15/linux kernel 学习笔记/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux-kernel/" rel="tag"># linux kernel</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/14/linux kernel 入门之环境搭建/" rel="next" title="linux kernel 入门之环境搭建">
+                <i class="fa fa-chevron-left"></i> linux kernel 入门之环境搭建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/21/2019-07-18-Linux-kernel-学习笔记2/" rel="prev" title="Linux kernel 4.20 BPF 整数溢出漏洞分析利用">
+                Linux kernel 4.20 BPF 整数溢出漏洞分析利用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Basic-Exploitation-Strategy-The-Vulnerabilities"><span class="nav-number">1.</span> <span class="nav-text">Basic Exploitation Strategy The Vulnerabilities</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Basic-Exploitation-Strategy-Returning-To-Userspace"><span class="nav-number">2.</span> <span class="nav-text">Basic  Exploitation Strategy  Returning To Userspace</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux-Kernel-保护机制"><span class="nav-number">3.</span> <span class="nav-text">Linux Kernel 保护机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MMAP-MIN-ADDR"><span class="nav-number">3.1.</span> <span class="nav-text">MMAP_MIN_ADDR</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#kallsyms"><span class="nav-number">3.2.</span> <span class="nav-text">kallsyms</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SMEP-SMAP"><span class="nav-number">3.3.</span> <span class="nav-text">SMEP/SMAP</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

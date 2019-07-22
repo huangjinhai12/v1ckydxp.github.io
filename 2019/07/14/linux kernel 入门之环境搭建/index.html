@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="linux kernel,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="环境1234ubuntu 14.04 amd64qemubusybox内核：linux-2.6.32.1 最开始是在ubuntu 16.04 amd64上面编译的，但是一直报错，谷歌搜说是linux kernel 版本低于3.18的都不能用gcc5来编译，需要用版本比较低的gcc。又重新装了ubuntu14.04 amd64位来试。主要是学习内核编译的方法。 编译内核123456789$ gunz">
+<meta name="keywords" content="linux kernel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux kernel 入门之环境搭建">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/07/14/linux kernel 入门之环境搭建/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="环境1234ubuntu 14.04 amd64qemubusybox内核：linux-2.6.32.1 最开始是在ubuntu 16.04 amd64上面编译的，但是一直报错，谷歌搜说是linux kernel 版本低于3.18的都不能用gcc5来编译，需要用版本比较低的gcc。又重新装了ubuntu14.04 amd64位来试。主要是学习内核编译的方法。 编译内核123456789$ gunz">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/1.jpg">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/2.jpg">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/3.png">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/4.png">
+<meta property="og:updated_time" content="2019-07-15T15:05:47.762Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux kernel 入门之环境搭建">
+<meta name="twitter:description" content="环境1234ubuntu 14.04 amd64qemubusybox内核：linux-2.6.32.1 最开始是在ubuntu 16.04 amd64上面编译的，但是一直报错，谷歌搜说是linux kernel 版本低于3.18的都不能用gcc5来编译，需要用版本比较低的gcc。又重新装了ubuntu14.04 amd64位来试。主要是学习内核编译的方法。 编译内核123456789$ gunz">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/07/14/linux kernel 入门之环境搭建/">
+
+
+
+
+
+  <title>linux kernel 入门之环境搭建 | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/07/14/linux kernel 入门之环境搭建/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">linux kernel 入门之环境搭建</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-14T00:00:00+08:00">
+                2019-07-14
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-15T23:05:47+08:00">
+                2019-07-15
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux-kernel/" itemprop="url" rel="index">
+                    <span itemprop="name">linux-kernel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  785
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  3
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ubuntu 14.04 amd64</span><br><span class="line">qemu</span><br><span class="line">busybox</span><br><span class="line">内核：linux-2.6.32.1</span><br></pre></td></tr></table></figure>
+<p>最开始是在ubuntu 16.04 amd64上面编译的，但是一直报错，谷歌搜说是linux kernel 版本低于3.18的都不能用gcc5来编译，需要用版本比较低的gcc。又重新装了ubuntu14.04 amd64位来试。主要是学习内核编译的方法。</p>
+<h3 id="编译内核"><a href="#编译内核" class="headerlink" title="编译内核"></a>编译内核</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> gunzip linux-2.6.32.1.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar xvf linux-2.6.32.1.tar</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> linux-2.6.32.1</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get install libncurses5-dev</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get install qemu qemu-system</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make menuconfig</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make all</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make modules</span></span><br></pre></td></tr></table></figure>
+<p>在执行make menuconfig 命令后会弹出一以下界面：</p>
+<p><img src="/images/linux-kernel-环境搭建/1.jpg" alt="linux-kernel"></p>
+<p>按照红色方框选择即可。<br>我在make这步卡了很久，一直报错，其中有个错误。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ERROR: <span class="string">"xt_rateest_put"</span> [net/netfilter/xt_rateest.ko] undefined!</span><br><span class="line">ERROR: <span class="string">"xt_rateest_lookup"</span> [net/netfilter/xt_rateest.ko] undefined!</span><br><span class="line">make[<span class="number">1</span>]: *** [__modpost] Error <span class="number">1</span></span><br><span class="line">make: *** [modules] Error <span class="number">2</span></span><br></pre></td></tr></table></figure></p>
+<p>这个问题折磨了我一周，在网上没有搜到怎么解决，原来是因为我实在mac下解压的，其中上面的依赖xt_XXXX文件在Mac下解压的时候会把文件名改成小写，导致找不到，net/netfilter/目录下有几个文件名是大写的。所以正常情况在linux操作不会出现这个问题。<br>在Mac下解压后的net/netfilter/文件中红色方框中的文件的文件名被改成了小写。</p>
+<p><img src="/images/linux-kernel-环境搭建/2.jpg" alt="linux-kernel"></p>
+<p>在Linux下解压的net/netfilter/下的文件为：</p>
+<p><img src="/images/linux-kernel-环境搭建/3.png" alt="linux-kernel"></p>
+<h3 id="编译busy-box"><a href="#编译busy-box" class="headerlink" title="编译busy-box"></a>编译busy-box</h3><p>版本：busybox-1.23.2</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ wget  http://busybox.net/downloads/busybox-1.23.2.tar.bz2  </span><br><span class="line">$ tar -jxvf busybox-1.23.2.tar.bz2</span><br><span class="line">$ <span class="built_in">cd</span> busybox-1.23.2</span><br><span class="line">$ make menuconfig</span><br><span class="line">$ make</span><br><span class="line">$ make install</span><br></pre></td></tr></table></figure>
+<p>在make menuconfig 这步的时候，要依次去掉<code>Linux System Utilities -&gt; [] Support mounting NFS file system</code>和<code>Networking Utilities -&gt; [] inetd</code>这两个选项。</p>
+<p>并且将busybox的编译选项设置为静态编译。<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Location:                                                           </span><br><span class="line">-&gt; Busybox Settings                                        </span><br><span class="line">   -&gt; Build Options     </span><br><span class="line">      [*] Build BusyBox as a static binary (no shared libs)</span><br></pre></td></tr></table></figure></p>
+<h3 id="配置busy-box"><a href="#配置busy-box" class="headerlink" title="配置busy-box"></a>配置busy-box</h3><p>方法一：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> _install</span><br><span class="line">$ mkdir -pv &#123;bin,sbin,etc,proc,sys,usr/&#123;bin,sbin&#125;&#125;</span><br><span class="line">$ vim init</span><br><span class="line"><span class="comment">################### this is init content########################</span></span><br><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"INIT SCRIPT"</span></span><br><span class="line">mount -t proc none /proc</span><br><span class="line">mount -t sysfs none /sys</span><br><span class="line">mount -t debugfs none /sys/kernel/debug</span><br><span class="line">mkdir /tmp</span><br><span class="line">mount -t tmpfs none /tmp</span><br><span class="line">mdev -s <span class="comment"># We need this to find /dev/sda later</span></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">"nBoot took <span class="variable">$(cut -d' ' -f1 /proc/uptime)</span> secondsn"</span></span><br><span class="line"><span class="built_in">exec</span> /bin/sh</span><br><span class="line"><span class="comment">###################        end       ########################## </span></span><br><span class="line"></span><br><span class="line">$ chmod +x init</span><br><span class="line">$  find . -print0 | cpio --null -ov --format=newc |  gzip -9 &gt;/tmp/initramfs-busybox-x86.cpio.gz</span><br><span class="line">$  qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -initrd /tmp/initramfs-busybox-x86.cpio.gz -m 200M  -nographic</span><br></pre></td></tr></table></figure></p>
+<p>这个方法真的好慢。</p>
+<p>方法二：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$ cp -r _install/ ../linux-2.6.32.1 <span class="comment">#将busybox中的_install文件夹拷贝到linux源码根目录下,_install文件夹将作为文件系统</span></span><br><span class="line">$ <span class="built_in">cd</span> linux-2.6.32.1/_install</span><br><span class="line">$ mkdir etc</span><br><span class="line">$ mkdir dev</span><br><span class="line">$ mkdir mnt</span><br><span class="line">$ mkdir -p etc/init.d/</span><br><span class="line">$ mkdir home</span><br><span class="line">$ mkdir root</span><br><span class="line">$ touch etc/passwd</span><br><span class="line">$ touch etc/group</span><br><span class="line">$ vim etc/init.d/rcS</span><br><span class="line"><span class="comment">################### this is rcS's content #######################</span></span><br><span class="line">mkdir -p /proc</span><br><span class="line">mkdir -p /tmp</span><br><span class="line">mkdir -p /sys</span><br><span class="line">mkdir -p /mnt</span><br><span class="line">/bin/mount -a</span><br><span class="line">mkdir -p /dev/pts</span><br><span class="line">mount -t devpts devpts /dev/pts</span><br><span class="line"><span class="built_in">echo</span> /sbin/mdev &gt; /proc/sys/kernel/hotplug</span><br><span class="line">mdev -s</span><br><span class="line"><span class="comment">###################        end        ###########################</span></span><br><span class="line"></span><br><span class="line">$ chmod +x rcS</span><br><span class="line">$ vim etc/fstab</span><br><span class="line"><span class="comment">################# this fstab's content   ########################</span></span><br><span class="line">proc /proc proc defaults 0 0</span><br><span class="line">tmpfs /tmp tmpfs defaults 0 0</span><br><span class="line">sysfs /sys sysfs defaults 0 0</span><br><span class="line">tmpfs /dev tmpfs defaults 0 0</span><br><span class="line"><span class="comment">###################        end        ###########################</span></span><br><span class="line"></span><br><span class="line">$ vim etc/inittab</span><br><span class="line"><span class="comment">################# this inittab's content  #######################</span></span><br><span class="line">::sysinit:/etc/init.d/rcS</span><br><span class="line">::respawn:-/bin/sh</span><br><span class="line">::askfirst:-/bin/sh</span><br><span class="line">::ctrlaltdel:/bin/umount -a -r</span><br><span class="line"><span class="comment">###################        end        ###########################</span></span><br><span class="line"></span><br><span class="line">$ <span class="built_in">cd</span> dev</span><br><span class="line">$ sudo mknod console c 5 1</span><br><span class="line">$ sudo mknod null c 1 3</span><br><span class="line">$ <span class="built_in">cd</span> ..</span><br><span class="line">$ find . -print0 | cpio --null -ov --format=newc | gzip -9 &gt; ../initramfs.img</span><br><span class="line">$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -initrd initramfs.img -m 200M -append <span class="string">"rdinit=/linuxrc"</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/linux-kernel-环境搭建/4.png" alt="linux-kernel"></p>
+<h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p><a href="https://www.anquanke.com/post/id/85837" target="_blank" rel="noopener">https://www.anquanke.com/post/id/85837</a></p>
+<p><a href="http://p4nda.top/2018/04/04/kernel-pwn-start/" target="_blank" rel="noopener">http://p4nda.top/2018/04/04/kernel-pwn-start/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/07/14/linux kernel 入门之环境搭建/" title="linux kernel 入门之环境搭建">https://v1ckydxp.github.io/archives/2019/07/14/linux kernel 入门之环境搭建/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux-kernel/" rel="tag"># linux kernel</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/10/todolist/" rel="next" title="TODO LIST">
+                <i class="fa fa-chevron-left"></i> TODO LIST
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/15/linux kernel 学习笔记/" rel="prev" title="linux kernel 学习笔记 -- Linux Kernel Exploitation">
+                linux kernel 学习笔记 -- Linux Kernel Exploitation <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#环境"><span class="nav-number">1.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编译内核"><span class="nav-number">2.</span> <span class="nav-text">编译内核</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编译busy-box"><span class="nav-number">3.</span> <span class="nav-text">编译busy-box</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置busy-box"><span class="nav-number">4.</span> <span class="nav-text">配置busy-box</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reference"><span class="nav-number">5.</span> <span class="nav-text">reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

