@@ -91,7 +91,7 @@
 <meta property="og:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/2.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/3.png">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/linux-kernel-环境搭建/4.png">
-<meta property="og:updated_time" content="2019-07-15T15:05:47.762Z">
+<meta property="og:updated_time" content="2019-07-24T07:40:43.843Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux kernel 入门之环境搭建">
 <meta name="twitter:description" content="环境1234ubuntu 14.04 amd64qemubusybox内核：linux-2.6.32.1 最开始是在ubuntu 16.04 amd64上面编译的，但是一直报错，谷歌搜说是linux kernel 版本低于3.18的都不能用gcc5来编译，需要用版本比较低的gcc。又重新装了ubuntu14.04 amd64位来试。主要是学习内核编译的方法。 编译内核123456789$ gunz">
@@ -313,8 +313,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-07-15T23:05:47+08:00">
-                2019-07-15
+              <time title="Post modified" itemprop="dateModified" datetime="2019-07-24T15:40:43+08:00">
+                2019-07-24
               </time>
             
           </span>
@@ -368,7 +368,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  785
+                  848
                 </span>
               
 
@@ -384,7 +384,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  3
+                  4
                 </span>
               
             </div>
@@ -424,6 +424,7 @@
 <p>方法二：</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$ cp -r _install/ ../linux-2.6.32.1 <span class="comment">#将busybox中的_install文件夹拷贝到linux源码根目录下,_install文件夹将作为文件系统</span></span><br><span class="line">$ <span class="built_in">cd</span> linux-2.6.32.1/_install</span><br><span class="line">$ mkdir etc</span><br><span class="line">$ mkdir dev</span><br><span class="line">$ mkdir mnt</span><br><span class="line">$ mkdir -p etc/init.d/</span><br><span class="line">$ mkdir home</span><br><span class="line">$ mkdir root</span><br><span class="line">$ touch etc/passwd</span><br><span class="line">$ touch etc/group</span><br><span class="line">$ vim etc/init.d/rcS</span><br><span class="line"><span class="comment">################### this is rcS's content #######################</span></span><br><span class="line">mkdir -p /proc</span><br><span class="line">mkdir -p /tmp</span><br><span class="line">mkdir -p /sys</span><br><span class="line">mkdir -p /mnt</span><br><span class="line">/bin/mount -a</span><br><span class="line">mkdir -p /dev/pts</span><br><span class="line">mount -t devpts devpts /dev/pts</span><br><span class="line"><span class="built_in">echo</span> /sbin/mdev &gt; /proc/sys/kernel/hotplug</span><br><span class="line">mdev -s</span><br><span class="line"><span class="comment">###################        end        ###########################</span></span><br><span class="line"></span><br><span class="line">$ chmod +x rcS</span><br><span class="line">$ vim etc/fstab</span><br><span class="line"><span class="comment">################# this fstab's content   ########################</span></span><br><span class="line">proc /proc proc defaults 0 0</span><br><span class="line">tmpfs /tmp tmpfs defaults 0 0</span><br><span class="line">sysfs /sys sysfs defaults 0 0</span><br><span class="line">tmpfs /dev tmpfs defaults 0 0</span><br><span class="line"><span class="comment">###################        end        ###########################</span></span><br><span class="line"></span><br><span class="line">$ vim etc/inittab</span><br><span class="line"><span class="comment">################# this inittab's content  #######################</span></span><br><span class="line">::sysinit:/etc/init.d/rcS</span><br><span class="line">::respawn:-/bin/sh</span><br><span class="line">::askfirst:-/bin/sh</span><br><span class="line">::ctrlaltdel:/bin/umount -a -r</span><br><span class="line"><span class="comment">###################        end        ###########################</span></span><br><span class="line"></span><br><span class="line">$ <span class="built_in">cd</span> dev</span><br><span class="line">$ sudo mknod console c 5 1</span><br><span class="line">$ sudo mknod null c 1 3</span><br><span class="line">$ <span class="built_in">cd</span> ..</span><br><span class="line">$ find . -print0 | cpio --null -ov --format=newc | gzip -9 &gt; ../initramfs.img</span><br><span class="line">$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -initrd initramfs.img -m 200M -append <span class="string">"rdinit=/linuxrc"</span></span><br></pre></td></tr></table></figure>
 <p><img src="/images/linux-kernel-环境搭建/4.png" alt="linux-kernel"></p>
+<p><strong>PS :</strong><br>每次修改代码之后要重新进行编译。每次将ko,poc,exp重新编译好后，放入到之前建好的_install文件夹，每次都要用<code>find . -print0 | cpio --null -ov --format=newc | gzip -9 &gt; ../initramfs.img</code>重新建立镜像。</p>
 <h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p><a href="https://www.anquanke.com/post/id/85837" target="_blank" rel="noopener">https://www.anquanke.com/post/id/85837</a></p>
 <p><a href="http://p4nda.top/2018/04/04/kernel-pwn-start/" target="_blank" rel="noopener">http://p4nda.top/2018/04/04/kernel-pwn-start/</a></p>
 
@@ -564,7 +565,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-count">32</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -586,7 +587,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-count">17</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
@@ -669,7 +670,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">35.5k</span>
+    <span title="Site words total count">38.3k</span>
   
 </div>
 
