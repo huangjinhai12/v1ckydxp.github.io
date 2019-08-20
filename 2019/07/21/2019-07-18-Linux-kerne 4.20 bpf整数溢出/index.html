@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="0x00 前言这个洞是去年在实习的接触的为数不多的二进制漏洞中的唯一一个Linux 内核漏洞，看到这个漏洞的第一反应是终于来了一个有质量的洞，但是问题是，作者交的exp可以说是什么都没有说，没有截图，就只有两三句话说了这个洞可以达到什么效果。很难受，对于一个整天接触web方向的洞的我来说实在是有点挑战。然后我记得我花了一两周编译内核，中途遇到了好多问题。虽然我现在都忘了，所以说遇到问题就记下来真的">
+<meta name="description" content="0x00 前言此处省略1000字。。。 0x01 BPF(Berkeley Packet Filter)模块简介BPF(Berkeley Packet Filter)模块是用于支持用户态自定义包过滤方法的内核模块，目前各大Linux发行版都默认开启了bpf支持。 本质上它是一种内核代码注入的技术：  内核中实现了一个cBPF/eBPF虚拟机； 用户态可以用C来写运行的代码，再通过一个Clang&amp;a">
 <meta name="keywords" content="linux kernel">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux kernel 4.20 BPF 整数溢出漏洞分析利用">
 <meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/07/21/2019-07-18-Linux-kerne 4.20 bpf整数溢出/index.html">
 <meta property="og:site_name" content="v1cky&#39;blog">
-<meta property="og:description" content="0x00 前言这个洞是去年在实习的接触的为数不多的二进制漏洞中的唯一一个Linux 内核漏洞，看到这个漏洞的第一反应是终于来了一个有质量的洞，但是问题是，作者交的exp可以说是什么都没有说，没有截图，就只有两三句话说了这个洞可以达到什么效果。很难受，对于一个整天接触web方向的洞的我来说实在是有点挑战。然后我记得我花了一两周编译内核，中途遇到了好多问题。虽然我现在都忘了，所以说遇到问题就记下来真的">
+<meta property="og:description" content="0x00 前言此处省略1000字。。。 0x01 BPF(Berkeley Packet Filter)模块简介BPF(Berkeley Packet Filter)模块是用于支持用户态自定义包过滤方法的内核模块，目前各大Linux发行版都默认开启了bpf支持。 本质上它是一种内核代码注入的技术：  内核中实现了一个cBPF/eBPF虚拟机； 用户态可以用C来写运行的代码，再通过一个Clang&amp;a">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-07-24T09:38:40.094Z">
+<meta property="og:updated_time" content="2019-08-20T06:13:02.514Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux kernel 4.20 BPF 整数溢出漏洞分析利用">
-<meta name="twitter:description" content="0x00 前言这个洞是去年在实习的接触的为数不多的二进制漏洞中的唯一一个Linux 内核漏洞，看到这个漏洞的第一反应是终于来了一个有质量的洞，但是问题是，作者交的exp可以说是什么都没有说，没有截图，就只有两三句话说了这个洞可以达到什么效果。很难受，对于一个整天接触web方向的洞的我来说实在是有点挑战。然后我记得我花了一两周编译内核，中途遇到了好多问题。虽然我现在都忘了，所以说遇到问题就记下来真的">
+<meta name="twitter:description" content="0x00 前言此处省略1000字。。。 0x01 BPF(Berkeley Packet Filter)模块简介BPF(Berkeley Packet Filter)模块是用于支持用户态自定义包过滤方法的内核模块，目前各大Linux发行版都默认开启了bpf支持。 本质上它是一种内核代码注入的技术：  内核中实现了一个cBPF/eBPF虚拟机； 用户态可以用C来写运行的代码，再通过一个Clang&amp;a">
 
 
 
@@ -308,8 +308,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-07-24T17:38:40+08:00">
-                2019-07-24
+              <time title="Post modified" itemprop="dateModified" datetime="2019-08-20T14:13:02+08:00">
+                2019-08-20
               </time>
             
           </span>
@@ -363,7 +363,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  2.5k
+                  2.2k
                 </span>
               
 
@@ -379,7 +379,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  11
+                  10
                 </span>
               
             </div>
@@ -400,7 +400,7 @@
       
 
       
-        <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>这个洞是去年在实习的接触的为数不多的二进制漏洞中的唯一一个Linux 内核漏洞，看到这个漏洞的第一反应是终于来了一个有质量的洞，但是问题是，作者交的exp可以说是什么都没有说，没有截图，就只有两三句话说了这个洞可以达到什么效果。很难受，对于一个整天接触web方向的洞的我来说实在是有点挑战。然后我记得我花了一两周编译内核，中途遇到了好多问题。虽然我现在都忘了，所以说遇到问题就记下来真的很重要，因为以后也可能会遇到，而且自己又是个记性真的超级烂的一个人。上周在分析xxx源码的时候，不小心触发了一个堆溢出漏洞，分析了几天，确定了溢出点，但是感觉快要自闭了，多线程的堆溢出，真的好复杂。。。先摸两天鱼把这个洞好好分析完再去利用这个多线程堆溢出，换换脑子，虽然大概率我觉得自己利用不出来。</p>
+        <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>此处省略1000字。。。</p>
 <h2 id="0x01-BPF-Berkeley-Packet-Filter-模块简介"><a href="#0x01-BPF-Berkeley-Packet-Filter-模块简介" class="headerlink" title="0x01 BPF(Berkeley Packet Filter)模块简介"></a>0x01 BPF(Berkeley Packet Filter)模块简介</h2><p><code>BPF(Berkeley Packet Filter)</code>模块是用于支持用户态自定义包过滤方法的内核模块，目前各大<code>Linux</code>发行版都默认开启了<code>bpf</code>支持。</p>
 <p>本质上它是一种<strong>内核代码注入</strong>的技术：</p>
 <ol>
@@ -716,7 +716,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">38.3k</span>
+    <span title="Site words total count">38k</span>
   
 </div>
 
