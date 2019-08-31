@@ -79,18 +79,20 @@
 
 
 
-<meta name="description" content="第二章 内存寻址段寄存器intel处理器有两种方式进行地址转换：实模式、保护模式。段寄存器的唯一目的是为了存放段选择符。分别为cd,ss,ds,es,fs和gs六个。六个寄存器有三个有特殊的用途：cs：代码段寄存器，指向包含程序指令的段，其中包含一个两位的字段，用以指明CPU的当前特权(CPL),0表示最高级，3表示最低级。分别称之为内核态和用户态。ss：栈段寄存器，指向当前程序栈的段ds：数据段">
+<meta name="description" content="第二章 内存寻址内存地址逻辑地址：每一个逻辑地址都由一个段标示符和段偏移组成。线性地址：也叫虚拟地址，在32位系统下，每个进程会虚拟出4G内存，其中0×00000000 到 0xBFFFFFFF是用户进程空间，0xC0000000 到 0xFFFFFFFF是内核进程空间。在64位系统下，每个进程并没有16EB( 2^64 )这么大虚拟内存，目前的x86-64架构CPU都遵循AMD的Canonica">
 <meta name="keywords" content="《深入理解Linux内核》">
 <meta property="og:type" content="article">
 <meta property="og:title" content="《深入理解Linux内核》阅读笔记">
 <meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/08/30/2019-08-30-《深入理解linux内核》阅读笔记/index.html">
 <meta property="og:site_name" content="v1cky&#39;blog">
-<meta property="og:description" content="第二章 内存寻址段寄存器intel处理器有两种方式进行地址转换：实模式、保护模式。段寄存器的唯一目的是为了存放段选择符。分别为cd,ss,ds,es,fs和gs六个。六个寄存器有三个有特殊的用途：cs：代码段寄存器，指向包含程序指令的段，其中包含一个两位的字段，用以指明CPU的当前特权(CPL),0表示最高级，3表示最低级。分别称之为内核态和用户态。ss：栈段寄存器，指向当前程序栈的段ds：数据段">
+<meta property="og:description" content="第二章 内存寻址内存地址逻辑地址：每一个逻辑地址都由一个段标示符和段偏移组成。线性地址：也叫虚拟地址，在32位系统下，每个进程会虚拟出4G内存，其中0×00000000 到 0xBFFFFFFF是用户进程空间，0xC0000000 到 0xFFFFFFFF是内核进程空间。在64位系统下，每个进程并没有16EB( 2^64 )这么大虚拟内存，目前的x86-64架构CPU都遵循AMD的Canonica">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-08-30T02:37:52.655Z">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/15672181834733.jpg">
+<meta property="og:updated_time" content="2019-08-31T09:31:16.130Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="《深入理解Linux内核》阅读笔记">
-<meta name="twitter:description" content="第二章 内存寻址段寄存器intel处理器有两种方式进行地址转换：实模式、保护模式。段寄存器的唯一目的是为了存放段选择符。分别为cd,ss,ds,es,fs和gs六个。六个寄存器有三个有特殊的用途：cs：代码段寄存器，指向包含程序指令的段，其中包含一个两位的字段，用以指明CPU的当前特权(CPL),0表示最高级，3表示最低级。分别称之为内核态和用户态。ss：栈段寄存器，指向当前程序栈的段ds：数据段">
+<meta name="twitter:description" content="第二章 内存寻址内存地址逻辑地址：每一个逻辑地址都由一个段标示符和段偏移组成。线性地址：也叫虚拟地址，在32位系统下，每个进程会虚拟出4G内存，其中0×00000000 到 0xBFFFFFFF是用户进程空间，0xC0000000 到 0xFFFFFFFF是内核进程空间。在64位系统下，每个进程并没有16EB( 2^64 )这么大虚拟内存，目前的x86-64架构CPU都遵循AMD的Canonica">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/15672181834733.jpg">
 
 
 
@@ -308,8 +310,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-08-30T10:37:52+08:00">
-                2019-08-30
+              <time title="Post modified" itemprop="dateModified" datetime="2019-08-31T17:31:16+08:00">
+                2019-08-31
               </time>
             
           </span>
@@ -363,7 +365,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  266
+                  1.7k
                 </span>
               
 
@@ -379,7 +381,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  1
+                  5
                 </span>
               
             </div>
@@ -400,8 +402,41 @@
       
 
       
-        <h1 id="第二章-内存寻址"><a href="#第二章-内存寻址" class="headerlink" title="第二章 内存寻址"></a>第二章 内存寻址</h1><h4 id="段寄存器"><a href="#段寄存器" class="headerlink" title="段寄存器"></a>段寄存器</h4><p>intel处理器有两种方式进行地址转换：实模式、保护模式。<br>段寄存器的唯一目的是为了存放段选择符。分别为cd,ss,ds,es,fs和gs六个。<br>六个寄存器有三个有特殊的用途：<br>cs：代码段寄存器，指向包含程序指令的段，其中包含一个两位的字段，用以指明CPU的当前特权(CPL),0表示最高级，3表示最低级。分别称之为内核态和用户态。<br>ss：栈段寄存器，指向当前程序栈的段<br>ds：数据段寄存器，指向静态数据或全局数据段。</p>
-<h4 id="段描述符"><a href="#段描述符" class="headerlink" title="段描述符"></a>段描述符</h4><p>通常只定义一个全局描述符（GDT），每个进程除了要存放在GDT中的段之外如果还需要创建附加的段，就可以有自己局部描述符（LDT local descriptor table）GDT在主存中的地址和大小存放gdtr控制寄存器中，LDT的地址和大小存放在ldtr控制寄存器。</p>
+        <h2 id="第二章-内存寻址"><a href="#第二章-内存寻址" class="headerlink" title="第二章 内存寻址"></a>第二章 内存寻址</h2><h4 id="内存地址"><a href="#内存地址" class="headerlink" title="内存地址"></a>内存地址</h4><p><strong>逻辑地址：</strong>每一个逻辑地址都由一个段标示符和段偏移组成。<br><strong>线性地址：</strong>也叫虚拟地址，在32位系统下，每个进程会虚拟出4G内存，其中0×00000000 到 0xBFFFFFFF是用户进程空间，0xC0000000 到 0xFFFFFFFF是内核进程空间。在64位系统下，每个进程并没有16EB( 2^64 )这么大虚拟内存，目前的x86-64架构CPU都遵循AMD的Canonical form, 即只有虚拟地址的最低48位才会在地址转换时被使用, 且任何虚拟地址的48位至63位必须与47位一致(sign extension). 也就是说, 总的虚拟地址空间为256TB( 2^48 )。 其中0x0000000000000000 - 0x00007fffffffffff(128TB)为用户空间, 0xffff800000000000 - 0xffffffffffffffff(128TB)为内核空间. <a href="http://adam8157.info/blog/2012/07/linux-x86-64-vm/" target="_blank" rel="noopener">参考这里</a><br><strong>物理地址：</strong>真实的内存地址，</p>
+<h4 id="段寄存器"><a href="#段寄存器" class="headerlink" title="段寄存器"></a>段寄存器</h4><p>intel处理器有两种方式进行地址转换：实模式、保护模式。<br>段寄存器的唯一目的是为了存放段选择符。分别为cd,ss,ds,es,fs和gs六个。<br>六个寄存器有三个有特殊的用途：<br>cs：代码段寄存器，指向包含程序指令的段，其中包含一个两位的字段，用以指明CPU的当前特权(CPL),0表示最高级，3表示最低级。分别称之为内核态和用户态。<br>ss：栈段寄存器，指向当前程序栈的段<br>ds：数据段寄存器，指向静态数据或全局数据段。</p>
+<h4 id="段描述符"><a href="#段描述符" class="headerlink" title="段描述符"></a>段描述符</h4><p>每个段有一个8字节的段描述符，段描述符防在GDT中。通常只定义一个全局描述符表（GDT），单处理器只有一个GDT，多处理器每一CPU对应一个GDT。每个进程除了要存放在GDT中的段之外如果还需要创建附加的段，就可以有自己局部描述符表（LDT local descriptor table）。GDT在主存中的地址和大小存放gdtr控制寄存器中，LDT的地址和大小存放在ldtr控制寄存器。</p>
+<h4 id="Linux中的分段"><a href="#Linux中的分段" class="headerlink" title="Linux中的分段"></a>Linux中的分段</h4><ul>
+<li>当从用户态切换到内核态时，Linux总是确保ss段寄存器装有内核数据段的段选择符。</li>
+<li>当对指向指令或数据结构的指针时，内核不需要为其设置逻辑地址的段选择符，因为cs里面就有当前的段选择符。在内核态执行的段只有一种，叫作代码段，由宏<strong>KERNEL_CS定义，当cpu切换到内核态时，只需要将宏</strong>KERNEL_CS装载进cs就可以了。</li>
+</ul>
+<h4 id="Linux中的分页"><a href="#Linux中的分页" class="headerlink" title="Linux中的分页"></a>Linux中的分页</h4><ul>
+<li>前面的分段单元把逻辑地址转换为线性地址，而分页单元将线性地址转换成物理地址。页内部连续的线性地址被映射到连续的物理地址中。</li>
+<li>页单元把所有的RAM分成固定长度的页框（物理页）。每一个页框包含一个页，也就是说页框的长度与一个页的长度一致。</li>
+<li>线性地址分为目录（directory）（10bits）、页表（table）(10bits)、偏移量（offset）(12bits)三个域。线性地址内的目录字段决定页目录中的目录项，而目录项执行适当的页表，地址中的table字段又决定页表中的表项，而表项含有页所在页框的物理地址。</li>
+</ul>
+<h4 id="物理内存布局"><a href="#物理内存布局" class="headerlink" title="物理内存布局"></a>物理内存布局</h4><p>在初始化阶段，内核必须建立一个物理地址映射来指定哪些物理地址对内核可用哪些不可以。<br>内核将下列页框记为保留：</p>
+<ul>
+<li>在不可用的物理地址范围内的页框。</li>
+<li>含有内核代码和已初始化的数据结构的页框。</li>
+</ul>
+<p>保留页框中的页绝不能动态分配或交换到磁盘上。</p>
+<h2 id="第三章-进程"><a href="#第三章-进程" class="headerlink" title="第三章 进程"></a>第三章 进程</h2><ul>
+<li>子进程对一个内存单元的修改对父进程是不可见的，反之亦然。</li>
+<li>进程之间还可能存在除了父子、兄弟关系之外的其他关系：一个进程可能是一个进程组或登录回话的领头进程，也可能是一个线程组的领头进程，还可能跟踪其他进程的执行。</li>
+</ul>
+<h4 id="pidhash表及链表"><a href="#pidhash表及链表" class="headerlink" title="pidhash表及链表"></a>pidhash表及链表</h4><p>顺序扫描进程链表并检查进程描述符的pid字段会非常低效，为了加快查找，引入了4个散列表。需要4个散列表是因为进程描述符包含了表示不同类型的PID的字段，而且每种类型的PID都需要自己的散列表。<br><img src="/images/15672181834733.jpg" alt="-w608"></p>
+<h4 id="等待队列的操作"><a href="#等待队列的操作" class="headerlink" title="等待队列的操作"></a>等待队列的操作</h4><p>在唤醒等待队列中的进程时，总是先唤醒非互斥的进程再唤醒互斥的进程，如果链表不为空的话。同时，一个等待队列同时包含互斥进程和非互斥进程的情况是非常罕见的。</p>
+<h3 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h3><h4 id="硬件上下文"><a href="#硬件上下文" class="headerlink" title="硬件上下文"></a>硬件上下文</h4><p>虽然每个进程都有属于自己的地址空间，但是所有进程西部共享CPU寄存器。在恢复一个进程的执行之前，内核必须确保每个寄存器都装载了挂载进程时的值。进程恢复执行前装入寄存器的一组数据成为<strong>硬件上下文</strong>，一部分存放在TSS（任务状态段，task status segment）段，剩余部分存放在内核态堆栈中。<br>早期的Linux版本利用far jmp指令跳转到切换进来的线程的TSS描述符的选择符来执行进程切换。这条指令即修改cs寄存器，也修改eip寄存器。<br>Linux2.6基于几下原因使用软件进行进程切换。</p>
+<ul>
+<li>通过一组MOV指令逐步执行切换，可以较好控制装入数据的合法性。可以检查ds和es段寄存器的值，这些值有可能被恶意伪造。</li>
+</ul>
+<p>进程切换只发生在内核态。在执行进程切换之前，用户态进程使用的所有寄存器的内容保存在内核态的堆栈上。</p>
+<h4 id="thread字段"><a href="#thread字段" class="headerlink" title="thread字段"></a>thread字段</h4><p>每次进程进程切换时，硬件上下文被保存在进程描述符的thread_struct的thread字段中。</p>
+<h4 id="内核线程"><a href="#内核线程" class="headerlink" title="内核线程"></a>内核线程</h4><p>内核线程有两个方面不同于普通进程：</p>
+<ul>
+<li>内核线程只运行在内核态，普通进程既可以运行在内核态，又可以运行在用户态。</li>
+<li>因为内核态线程只运行在内核态，它们只是用大于PAGE_OFFSET的线性地址空间。另一方面，不管在用户态还是在内核态，普通进程可以用4G的线性地址空间。</li>
+</ul>
 
       
     </div>
@@ -625,7 +660,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第二章-内存寻址"><span class="nav-number">1.</span> <span class="nav-text">第二章 内存寻址</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#段寄存器"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">段寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段描述符"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">段描述符</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#第二章-内存寻址"><span class="nav-number">1.</span> <span class="nav-text">第二章 内存寻址</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#内存地址"><span class="nav-number">1.0.1.</span> <span class="nav-text">内存地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段寄存器"><span class="nav-number">1.0.2.</span> <span class="nav-text">段寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段描述符"><span class="nav-number">1.0.3.</span> <span class="nav-text">段描述符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux中的分段"><span class="nav-number">1.0.4.</span> <span class="nav-text">Linux中的分段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux中的分页"><span class="nav-number">1.0.5.</span> <span class="nav-text">Linux中的分页</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#物理内存布局"><span class="nav-number">1.0.6.</span> <span class="nav-text">物理内存布局</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#第三章-进程"><span class="nav-number">2.</span> <span class="nav-text">第三章 进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pidhash表及链表"><span class="nav-number">2.0.1.</span> <span class="nav-text">pidhash表及链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#等待队列的操作"><span class="nav-number">2.0.2.</span> <span class="nav-text">等待队列的操作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程切换"><span class="nav-number">2.1.</span> <span class="nav-text">进程切换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#硬件上下文"><span class="nav-number">2.1.1.</span> <span class="nav-text">硬件上下文</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thread字段"><span class="nav-number">2.1.2.</span> <span class="nav-text">thread字段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内核线程"><span class="nav-number">2.1.3.</span> <span class="nav-text">内核线程</span></a></li></ol></li></div>
             
 
           </div>
@@ -659,7 +694,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">41.6k</span>
+    <span title="Site words total count">43k</span>
   
 </div>
 
