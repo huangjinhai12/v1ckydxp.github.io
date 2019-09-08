@@ -88,7 +88,7 @@
 <meta property="og:description" content="第二章 内存寻址内存地址逻辑地址：每一个逻辑地址都由一个段标示符和段偏移组成。线性地址：也叫虚拟地址，在32位系统下，每个进程会虚拟出4G内存，其中0×00000000 到 0xBFFFFFFF是用户进程空间，0xC0000000 到 0xFFFFFFFF是内核进程空间。在64位系统下，每个进程并没有16EB( 2^64 )这么大虚拟内存，目前的x86-64架构CPU都遵循AMD的Canonica">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15672181834733.jpg">
-<meta property="og:updated_time" content="2019-08-31T12:45:00.970Z">
+<meta property="og:updated_time" content="2019-09-02T01:06:25.827Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="《深入理解Linux内核》阅读笔记">
 <meta name="twitter:description" content="第二章 内存寻址内存地址逻辑地址：每一个逻辑地址都由一个段标示符和段偏移组成。线性地址：也叫虚拟地址，在32位系统下，每个进程会虚拟出4G内存，其中0×00000000 到 0xBFFFFFFF是用户进程空间，0xC0000000 到 0xFFFFFFFF是内核进程空间。在64位系统下，每个进程并没有16EB( 2^64 )这么大虚拟内存，目前的x86-64架构CPU都遵循AMD的Canonica">
@@ -310,8 +310,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-08-31T20:45:00+08:00">
-                2019-08-31
+              <time title="Post modified" itemprop="dateModified" datetime="2019-09-02T09:06:25+08:00">
+                2019-09-02
               </time>
             
           </span>
@@ -365,7 +365,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  2.5k
+                  3.1k
                 </span>
               
 
@@ -381,7 +381,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  8
+                  10
                 </span>
               
             </div>
@@ -469,6 +469,19 @@
 <li>与异常相关的至多两个内核控制路径会堆叠在一起（第一个系统调用引起，第二个由缺页引起）。因为“Page Fault”异常处理程序从不进一步引起异常。</li>
 <li>一个终端处理程序即可以抢占其他的中断处理程序，也可以抢占异常处理程序。相反，异常处理程序从不抢占中断处理程序。</li>
 </ul>
+<h4 id="多种类型的内核栈"><a href="#多种类型的内核栈" class="headerlink" title="多种类型的内核栈"></a>多种类型的内核栈</h4><p>内核栈位于thread_union中，根据编译内核的选项不同，tnread_union结构可能占据一个页框或两个页框。若tnread_union占据两个页框(8KB)，那么当前进程的内核栈就被用于所有类型的内核控制路径。若tnread_union结构占据一个页框（4KB），内核只使用三种内核栈：</p>
+<pre><code>* 异常栈：用于处理异常，包括系统调用。
+* 硬中断请求栈：用于处理中断。
+* 软中断请求栈：用于处理可延迟函数。
+</code></pre><h4 id="为中断处理程序保存寄存器的值"><a href="#为中断处理程序保存寄存器的值" class="headerlink" title="为中断处理程序保存寄存器的值"></a>为中断处理程序保存寄存器的值</h4><p>内核用负数来表示所有的中断，因为正数用来表示系统调用。</p>
+<h4 id="do-IRQ-函数"><a href="#do-IRQ-函数" class="headerlink" title="do_IRQ()函数"></a>do_IRQ()函数</h4><p>关键字regparm表示函数到eax寄存器中去找到参数regs的值。</p>
+<h4 id="挽救丢失的中断"><a href="#挽救丢失的中断" class="headerlink" title="挽救丢失的中断"></a>挽救丢失的中断</h4><p>在多处理器系统中，假设有一条激活的IRQ线，在CPU应答中断前，这条IRQ线被另一个CPU屏蔽掉；结果IRQ_DISABLED标志被设置。随后，当前的CPU开始处理挂起的中断，但是do_IRQ()函数检测到IRQ_DISABLED标签被设置，所以不会执行中断服务例程，造成中断丢失。在这种情况下，内核用来激活IRQ线的enable_irq()函数先检测是否发生了中断丢失，如果是，该函数就强迫硬件让丢失的中断再产生一次。</p>
+<h2 id="第八章-内存管理"><a href="#第八章-内存管理" class="headerlink" title="第八章 内存管理"></a>第八章 内存管理</h2><p>RAM的某些部分永久地分配给内核，用来保存内核代码以及静态内核数据结构。其余部分被称为动态内存。整个系统的性能取决于如何有效的管理动态内存。因此，现在所有多任务操作系统都在尽力优化对动态内存的使用，即用时分配，不用时释放。</p>
+<h3 id="页框管理"><a href="#页框管理" class="headerlink" title="页框管理"></a>页框管理</h3><p>Linux采用4KB页框大小作为标准的内存分配单元。</p>
+<h4 id="页描述符"><a href="#页描述符" class="headerlink" title="页描述符"></a>页描述符</h4><p>内核必须能够区分哪些页框包含的是属于进程的页，哪些包含的是内核代码或内核数据。页框的状态存放在page的页描述符中，所有的页描述符存放在mem_map数组中，所以mem_map所需要的空间略小于RAM的%1。</p>
+<ul>
+<li><strong>_count:</strong><br>  页的引用计数器。如果该数为-1，则代码该也空闲，可被分配给任一进程或内核本身。page_count()函数返回_count加1后的值，也就是该页的使用者的数量。<h5 id="非一致内存访问（NUMA）"><a href="#非一致内存访问（NUMA）" class="headerlink" title="非一致内存访问（NUMA）"></a>非一致内存访问（NUMA）</h5>在非一致内存访问模型，在这种模型中，给定CPU对不同内存单元的访问时间可能不一样。<h2 id="第九章-进程地址空间"><a href="#第九章-进程地址空间" class="headerlink" title="第九章 进程地址空间"></a>第九章 进程地址空间</h2></li>
+</ul>
 
       
     </div>
@@ -526,6 +539,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/02/2019-09-02-cve-2017-16995 漏洞复现/" rel="prev" title="CVE-2017-16995 本地提权漏洞分析与复现">
+                CVE-2017-16995 本地提权漏洞分析与复现 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -603,7 +620,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -625,7 +642,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
@@ -692,7 +709,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#第二章-内存寻址"><span class="nav-number">1.</span> <span class="nav-text">第二章 内存寻址</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#内存地址"><span class="nav-number">1.0.1.</span> <span class="nav-text">内存地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段寄存器"><span class="nav-number">1.0.2.</span> <span class="nav-text">段寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段描述符"><span class="nav-number">1.0.3.</span> <span class="nav-text">段描述符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux中的分段"><span class="nav-number">1.0.4.</span> <span class="nav-text">Linux中的分段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux中的分页"><span class="nav-number">1.0.5.</span> <span class="nav-text">Linux中的分页</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#物理内存布局"><span class="nav-number">1.0.6.</span> <span class="nav-text">物理内存布局</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#第三章-进程"><span class="nav-number">2.</span> <span class="nav-text">第三章 进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pidhash表及链表"><span class="nav-number">2.0.1.</span> <span class="nav-text">pidhash表及链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#等待队列的操作"><span class="nav-number">2.0.2.</span> <span class="nav-text">等待队列的操作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程切换"><span class="nav-number">2.1.</span> <span class="nav-text">进程切换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#硬件上下文"><span class="nav-number">2.1.1.</span> <span class="nav-text">硬件上下文</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thread字段"><span class="nav-number">2.1.2.</span> <span class="nav-text">thread字段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内核线程"><span class="nav-number">2.1.3.</span> <span class="nav-text">内核线程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第四章-中断和异常"><span class="nav-number">3.</span> <span class="nav-text">第四章 中断和异常</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#中断信号的作用"><span class="nav-number">3.0.1.</span> <span class="nav-text">中断信号的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断和异常"><span class="nav-number">3.0.2.</span> <span class="nav-text">中断和异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断描述符表"><span class="nav-number">3.0.3.</span> <span class="nav-text">中断描述符表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断和异常处理程序的嵌套执行"><span class="nav-number">3.0.4.</span> <span class="nav-text">中断和异常处理程序的嵌套执行</span></a></li></ol></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#第二章-内存寻址"><span class="nav-number">1.</span> <span class="nav-text">第二章 内存寻址</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#内存地址"><span class="nav-number">1.0.1.</span> <span class="nav-text">内存地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段寄存器"><span class="nav-number">1.0.2.</span> <span class="nav-text">段寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#段描述符"><span class="nav-number">1.0.3.</span> <span class="nav-text">段描述符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux中的分段"><span class="nav-number">1.0.4.</span> <span class="nav-text">Linux中的分段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux中的分页"><span class="nav-number">1.0.5.</span> <span class="nav-text">Linux中的分页</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#物理内存布局"><span class="nav-number">1.0.6.</span> <span class="nav-text">物理内存布局</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#第三章-进程"><span class="nav-number">2.</span> <span class="nav-text">第三章 进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pidhash表及链表"><span class="nav-number">2.0.1.</span> <span class="nav-text">pidhash表及链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#等待队列的操作"><span class="nav-number">2.0.2.</span> <span class="nav-text">等待队列的操作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程切换"><span class="nav-number">2.1.</span> <span class="nav-text">进程切换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#硬件上下文"><span class="nav-number">2.1.1.</span> <span class="nav-text">硬件上下文</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thread字段"><span class="nav-number">2.1.2.</span> <span class="nav-text">thread字段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内核线程"><span class="nav-number">2.1.3.</span> <span class="nav-text">内核线程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第四章-中断和异常"><span class="nav-number">3.</span> <span class="nav-text">第四章 中断和异常</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#中断信号的作用"><span class="nav-number">3.0.1.</span> <span class="nav-text">中断信号的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断和异常"><span class="nav-number">3.0.2.</span> <span class="nav-text">中断和异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断描述符表"><span class="nav-number">3.0.3.</span> <span class="nav-text">中断描述符表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断和异常处理程序的嵌套执行"><span class="nav-number">3.0.4.</span> <span class="nav-text">中断和异常处理程序的嵌套执行</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多种类型的内核栈"><span class="nav-number">3.0.5.</span> <span class="nav-text">多种类型的内核栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#为中断处理程序保存寄存器的值"><span class="nav-number">3.0.6.</span> <span class="nav-text">为中断处理程序保存寄存器的值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#do-IRQ-函数"><span class="nav-number">3.0.7.</span> <span class="nav-text">do_IRQ()函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#挽救丢失的中断"><span class="nav-number">3.0.8.</span> <span class="nav-text">挽救丢失的中断</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第八章-内存管理"><span class="nav-number">4.</span> <span class="nav-text">第八章 内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#页框管理"><span class="nav-number">4.1.</span> <span class="nav-text">页框管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#页描述符"><span class="nav-number">4.1.1.</span> <span class="nav-text">页描述符</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#非一致内存访问（NUMA）"><span class="nav-number">4.1.1.1.</span> <span class="nav-text">非一致内存访问（NUMA）</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第九章-进程地址空间"><span class="nav-number">5.</span> <span class="nav-text">第九章 进程地址空间</span></a></li></div>
             
 
           </div>
@@ -726,7 +743,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">43.8k</span>
+    <span title="Site words total count">48.4k</span>
   
 </div>
 
