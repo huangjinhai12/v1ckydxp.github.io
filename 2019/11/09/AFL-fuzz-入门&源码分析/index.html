@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="AFL,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。 0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编译时">
+<meta name="keywords" content="AFL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AFL fuzz 入门 &amp; 源码分析">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/11/09/AFL-fuzz-入门&源码分析/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。 0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编译时">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/15710161322527.jpg">
+<meta property="og:updated_time" content="2019-11-09T12:57:48.640Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AFL fuzz 入门 &amp; 源码分析">
+<meta name="twitter:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。 0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编译时">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/15710161322527.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/11/09/AFL-fuzz-入门&源码分析/">
+
+
+
+
+
+  <title>AFL fuzz 入门 & 源码分析 | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/11/09/AFL-fuzz-入门&源码分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">AFL fuzz 入门 & 源码分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-09T00:00:00+08:00">
+                2019-11-09
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-11-09T20:57:48+08:00">
+                2019-11-09
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/FUZZ/" itemprop="url" rel="index">
+                    <span itemprop="name">FUZZ</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.9k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  17
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。<br>    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。</p>
+<h2 id="0x01-AFL-简介"><a href="#0x01-AFL-简介" class="headerlink" title="0x01 AFL 简介"></a>0x01 AFL 简介</h2><p>​    AFL Fuzzing工具的原理是：对源码进行重新编译时进行插桩，在进行fuzzing时，会把执行了新的tuple或新的tuple命中组的测试样例重新放回语料库进行编译，不断优化种子，来提高代码覆盖率。而且AFL是基于边覆盖率的，之所以没有采用基本块覆盖率是因为大部分的漏洞产生都是由于一些不确定性的跳转或者状态导致，而不是只是单纯的是否执行到了这块代码，所以采用边覆盖率比基于代码覆盖率更有意义。AFL用了一块64KB的共享内存来存放tuple的信息，而且是采用byte来记录tuple的信息，之所以采用byte不是bit是因为还要记录命中数。使用这块有限的共享内存存在碰撞，会导致边覆盖率不准确，这是AFL的一个缺点。</p>
+<h2 id="0x02-下载、安装"><a href="#0x02-下载、安装" class="headerlink" title="0x02 下载、安装"></a>0x02 下载、安装</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz</span><br><span class="line">$ tar xvf afl-latest.tgz</span><br><span class="line">$ <span class="built_in">cd</span> afl-2.52b</span><br><span class="line">$ sudo make &amp;&amp; sudo make install</span><br></pre></td></tr></table></figure>
+<h3 id="2-1-报错"><a href="#2-1-报错" class="headerlink" title="2.1 报错"></a>2.1 报错</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[-] Hmm, your system is configured to send core dump notifications to an</span><br><span class="line">    external utility. This will cause issues: there will be an extended delay</span><br><span class="line">    between stumbling upon a crash and having this information relayed to the</span><br><span class="line">    fuzzer via the standard waitpid() API.</span><br><span class="line"></span><br><span class="line">    To avoid having crashes misinterpreted as timeouts, please <span class="built_in">log</span> <span class="keyword">in</span> as root</span><br><span class="line">    and temporarily modify /proc/sys/kernel/core_pattern, like so:</span><br><span class="line"></span><br><span class="line">    <span class="built_in">echo</span> core &gt;/proc/sys/kernel/core_pattern</span><br><span class="line"></span><br><span class="line">[-] PROGRAM ABORT : Pipe at the beginning of <span class="string">'core_pattern'</span></span><br><span class="line">         Location : check_crash_handling(), afl-fuzz.c:7275</span><br></pre></td></tr></table></figure>
+<p>解决方法：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo su</span><br><span class="line">$ <span class="built_in">echo</span> core &gt;/proc/sys/kernel/core_pattern</span><br></pre></td></tr></table></figure>
+<h2 id="0x03源码分析"><a href="#0x03源码分析" class="headerlink" title="0x03源码分析"></a>0x03源码分析</h2><p>ASAN ： address-Sanitizier，Linux下的内存检测工具<br>afl-as.c : 处理汇编代码，在分支处插入探针（插桩代码），并最终再调用as进行真正的汇编</p>
+<h3 id="3-1-AFL源码目录结构"><a href="#3-1-AFL源码目录结构" class="headerlink" title="3.1 AFL源码目录结构"></a>3.1 AFL源码目录结构</h3><p>以下是afl源码各文件目录的功能说明。 </p>
+<div align="center"><img src="/images/15710161322527.jpg" alt="-w839"><br><br></div>
+
+<h3 id="3-3-插桩模块分析"><a href="#3-3-插桩模块分析" class="headerlink" title="3.3 插桩模块分析"></a>3.3 插桩模块分析</h3><p>插桩模块的主要代码逻辑在afl-as.c和afl-as.h文件中。afl-as.c文件中主要实现的是对程序进行插桩的逻辑，比如在什么位置进行插桩。afl-as.h文件中实现了插桩代码，在插桩时进行的具体操作。</p>
+<h4 id="3-3-1-afl-as-c源码分析"><a href="#3-3-1-afl-as-c源码分析" class="headerlink" title="3.3.1 afl-as.c源码分析"></a>3.3.1 afl-as.c源码分析</h4><p>afl-as.c文件中，关键逻辑在add_instrumentation()函数，下面主要分析该函数的逻辑。<br>首先打开该文件，循环的读取文件的一行，然后进行一系列的判断。并且会将插桩后的文件写入到modified_file中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (input_file) &#123; </span><br><span class="line"></span><br><span class="line">   inf = fopen(input_file, <span class="string">"r"</span>);</span><br><span class="line">   <span class="keyword">if</span> (!inf) PFATAL(<span class="string">"Unable to read '%s'"</span>, input_file);</span><br><span class="line"></span><br><span class="line"> &#125; <span class="keyword">else</span> inf = <span class="built_in">stdin</span>;</span><br><span class="line"></span><br><span class="line"> outfd = open(modified_file, O_WRONLY | O_EXCL | O_CREAT, <span class="number">0600</span>);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">if</span> (outfd &lt; <span class="number">0</span>) PFATAL(<span class="string">"Unable to write to '%s'"</span>, modified_file);</span><br><span class="line"></span><br><span class="line"> outf = fdopen(outfd, <span class="string">"w"</span>);</span><br><span class="line"><span class="comment">//循环读取每一行，然后进行判断</span></span><br><span class="line"> <span class="keyword">while</span> (fgets(line, MAX_LINE, inf)) &#123;</span><br></pre></td></tr></table></figure>
+<p>在下面会进行一些判断，然后在合适的位置进行插桩，然后再把该行也写入到输出文件。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!pass_thru &amp;&amp; !skip_intel &amp;&amp; !skip_app &amp;&amp; !skip_csect &amp;&amp; instr_ok &amp;&amp;</span><br><span class="line">    instrument_next &amp;&amp; line[<span class="number">0</span>] == <span class="string">'\t'</span> &amp;&amp; <span class="built_in">isalpha</span>(line[<span class="number">1</span>])) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">fprintf</span>(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,</span><br><span class="line">          R(MAP_SIZE));</span><br><span class="line"></span><br><span class="line">  instrument_next = <span class="number">0</span>;</span><br><span class="line">  ins_lines++;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">    <span class="comment">/* Output the actual line, call it a day in pass-thru mode. */</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">fputs</span>(line, outf);</span><br></pre></td></tr></table></figure>
+<p>插桩的位置主要是在.text段，所以每输入一行，会去判断是否是.text段也就是代码段。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (line[<span class="number">0</span>] == <span class="string">'\t'</span> &amp;&amp; line[<span class="number">1</span>] == <span class="string">'.'</span>) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* OpenBSD puts jump tables directly inline with the code, which is</span></span><br><span class="line"><span class="comment">     a bit annoying. They use a specific format of p2align directives</span></span><br><span class="line"><span class="comment">     around them, so we use that as a signal. */</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!clang_mode &amp;&amp; instr_ok &amp;&amp; !<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"p2align "</span>, <span class="number">8</span>) &amp;&amp;</span><br><span class="line">      <span class="built_in">isdigit</span>(line[<span class="number">10</span>]) &amp;&amp; line[<span class="number">11</span>] == <span class="string">'\n'</span>) skip_next_label = <span class="number">1</span>;</span><br><span class="line">  <span class="comment">//找代码段</span></span><br><span class="line">  <span class="keyword">if</span> (!<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"text\n"</span>, <span class="number">5</span>) ||</span><br><span class="line">      !<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"section\t.text"</span>, <span class="number">13</span>) ||</span><br><span class="line">      !<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"section\t__TEXT,__text"</span>, <span class="number">21</span>) ||</span><br><span class="line">      !<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"section __TEXT,__text"</span>, <span class="number">21</span>)) &#123;</span><br><span class="line">    instr_ok = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">continue</span>; </span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"section\t"</span>, <span class="number">8</span>) ||</span><br><span class="line">      !<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"section "</span>, <span class="number">8</span>) ||</span><br><span class="line">      !<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"bss\n"</span>, <span class="number">4</span>) ||</span><br><span class="line">      !<span class="built_in">strncmp</span>(line + <span class="number">2</span>, <span class="string">"data\n"</span>, <span class="number">5</span>)) &#123;</span><br><span class="line">    instr_ok = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>判断是32位还是64位，并设置相应的标识位。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="built_in">strstr</span>(line, <span class="string">".code"</span>)) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strstr</span>(line, <span class="string">".code32"</span>)) skip_csect = use_64bit;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strstr</span>(line, <span class="string">".code64"</span>)) skip_csect = !use_64bit;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AFL会在main函数，条件分支语句后面插入探针。下面这段代码是找j开头，第二个字母不是m的跳转指令。但是会以一定的概率来决定插入还是不插入探针。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (line[<span class="number">0</span>] == <span class="string">'\t'</span>) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (line[<span class="number">1</span>] == <span class="string">'j'</span> &amp;&amp; line[<span class="number">2</span>] != <span class="string">'m'</span> &amp;&amp; R(<span class="number">100</span>) &lt; inst_ratio) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,</span><br><span class="line">            R(MAP_SIZE));</span><br><span class="line"></span><br><span class="line">    ins_lines++;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="3-3-2-afl-as-h源码分析"><a href="#3-3-2-afl-as-h源码分析" class="headerlink" title="3.3.2 afl-as.h源码分析"></a>3.3.2 afl-as.h源码分析</h4><p>前面分析fork server部分已经分析了一部分逻辑。这里再详细分析一下。这里只分析32位的逻辑，64位大同小异。</p>
+<h5 id="3-3-2-1-trampoline-fmt-32"><a href="#3-3-2-1-trampoline-fmt-32" class="headerlink" title="3.3.2.1 trampoline_fmt_32"></a>3.3.2.1 trampoline_fmt_32</h5><p>这部分代码就是适当位置插入的探针，主要的作用就是调用afl_maybe_log函数，但是在每处插入的函数的参数都不一样，每处插入的代码是afl_maybe_log(random()%MAP_SIZE)，即在不考虑碰撞的情况下执行被插入的代码时可以唯一的确定程序的当前运行位置。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> u8* trampoline_fmt_32 =</span><br><span class="line"></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"/* --- AFL TRAMPOLINE (32-BIT) --- */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">".align 4\n"</span><span class="comment">//4 字节对齐</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"leal -16(%%esp), %%esp\n"</span><span class="comment">//抬高栈顶</span></span><br><span class="line">  <span class="string">"movl %%edi,  0(%%esp)\n"</span><span class="comment">//将edi保存到esp处</span></span><br><span class="line">  <span class="string">"movl %%edx,  4(%%esp)\n"</span><span class="comment">//保存edx到esp+4</span></span><br><span class="line">  <span class="string">"movl %%ecx,  8(%%esp)\n"</span><span class="comment">//保存ecx到esp+8</span></span><br><span class="line">  <span class="string">"movl %%eax, 12(%%esp)\n"</span><span class="comment">//保存eax到esp+12</span></span><br><span class="line">  <span class="string">"movl $0x%08x, %%ecx\n"</span><span class="comment">//把参数给ecx</span></span><br><span class="line">  <span class="string">"call __afl_maybe_log\n"</span><span class="comment">//调用__afl_maybe_log</span></span><br><span class="line">  <span class="string">"movl 12(%%esp), %%eax\n"</span><span class="comment">//下面几条指令是恢复寄存器，恢复栈顶</span></span><br><span class="line">  <span class="string">"movl  8(%%esp), %%ecx\n"</span></span><br><span class="line">  <span class="string">"movl  4(%%esp), %%edx\n"</span></span><br><span class="line">  <span class="string">"movl  0(%%esp), %%edi\n"</span></span><br><span class="line">  <span class="string">"leal 16(%%esp), %%esp\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"/* --- END --- */\n"</span></span><br><span class="line">  <span class="string">"\n"</span>;</span><br></pre></td></tr></table></figure>
+<h5 id="3-3-2-2-main-playload-32"><a href="#3-3-2-2-main-playload-32" class="headerlink" title="3.3.2.2 main_playload_32"></a>3.3.2.2 main_playload_32</h5><p>这部分代码有afl_maybe_log函数的实现逻辑。<br>首先将共享内存的地址映射到当前进程。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"  /* Check if SHM(share memory) region is already mapped. */\n"</span></span><br><span class="line"><span class="string">"\n"</span></span><br><span class="line"><span class="string">"  movl  __afl_area_ptr, %edx\n"</span><span class="comment">//__afl_area_ptr保存的是共享内存映射到target进程空间的地址</span></span><br><span class="line"><span class="string">"  testl %edx, %edx\n"</span></span><br><span class="line"><span class="string">"  je    __afl_setup\n"</span></span><br></pre></td></tr></table></figure>
+<p>如果共享内存还没有加载，则调用<strong>afl_setup加载共享内存，</strong>afl_setup函数的具体逻辑如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"__afl_setup:\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  /* Do not retry setup if we had previous failures. */\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  cmpb $0, __afl_setup_failure\n"</span><span class="comment">//if we had previous failous ,just ret</span></span><br><span class="line"> <span class="string">"  jne  __afl_return\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  /* Map SHM, jumping to __afl_setup_abort if something goes wrong.\n"</span></span><br><span class="line"> <span class="string">"     We do not save FPU/MMX/SSE registers here, but hopefully, nobody\n"</span></span><br><span class="line"> <span class="string">"     will notice this early in the game. */\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  pushl %eax\n"</span></span><br><span class="line"> <span class="string">"  pushl %ecx\n"</span> </span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  pushl $.AFL_SHM_ENV\n"</span><span class="comment">//获取共享内存的环境变量，得到共享内存的标识</span></span><br><span class="line"> <span class="string">"  call  getenv\n"</span></span><br><span class="line"> <span class="string">"  addl  $4, %esp\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  testl %eax, %eax\n"</span></span><br><span class="line"> <span class="string">"  je    __afl_setup_abort\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  pushl %eax\n"</span></span><br><span class="line"> <span class="string">"  call  atoi\n"</span><span class="comment">//将得到的共享内存标识转换成整型</span></span><br><span class="line"> <span class="string">"  addl  $4, %esp\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  pushl $0          /* shmat flags    */\n"</span></span><br><span class="line"> <span class="string">"  pushl $0          /* requested addr */\n"</span></span><br><span class="line"> <span class="string">"  pushl %eax        /* SHM ID         */\n"</span></span><br><span class="line"> <span class="string">"  call  shmat\n"</span> <span class="comment">//将该共享内存区映射到当前进程空间</span></span><br><span class="line"> <span class="string">"  addl  $12, %esp\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  cmpl $-1, %eax\n"</span></span><br><span class="line"> <span class="string">"  je   __afl_setup_abort\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  /* Store the address of the SHM region. */\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  movl %eax, __afl_area_ptr\n"</span><span class="comment">//将内存空间地址保存在__afl_area_ptr指针和edx中</span></span><br><span class="line"> <span class="string">"  movl %eax, %edx\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br><span class="line"> <span class="string">"  popl %ecx\n"</span></span><br><span class="line"> <span class="string">"  popl %eax\n"</span></span><br><span class="line"> <span class="string">"\n"</span></span><br></pre></td></tr></table></figure>
+<p><strong>afl_setup函数从环境变量中得到共享内存标识，最后将共享内存的地址保存在</strong>afl_area_ptr指针和edx中。<br>回到刚刚上面的逻辑，如果共享内存已经加载，即<strong>afl_area_ptr指针已经保存了共享内存的地址。<br>则继续往下走，会调用</strong>afl_store函数，该函数的作用是记录tuple信息。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"> <span class="string">"__afl_store:\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line">  <span class="string">"  /* Calculate and store hit for the code location specified in ecx. There\n"</span></span><br><span class="line">  <span class="string">"     is a double-XOR way of doing this without tainting another register,\n"</span></span><br><span class="line">  <span class="string">"     and we use it on 64-bit systems; but it's slower for 32-bit ones. */\n"</span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> COVERAGE_ONLY</span></span><br><span class="line">  <span class="string">"  movl __afl_prev_loc, %edi\n"</span> <span class="comment">//edi = pre_location</span></span><br><span class="line">  <span class="string">"  xorl %ecx, %edi\n"</span> <span class="comment">// cur_location ^ pre_location</span></span><br><span class="line">  <span class="string">"  shrl $1, %ecx\n"</span> <span class="comment">//cur_location&gt;&gt;1</span></span><br><span class="line">  <span class="string">"  movl %ecx, __afl_prev_loc\n"</span> <span class="comment">//pre_location = cur_location</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">  <span class="string">"  movl %ecx, %edi\n"</span> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* ^!COVERAGE_ONLY */</span></span></span><br><span class="line">  <span class="string">"\n"</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> SKIP_COUNTS</span></span><br><span class="line">  <span class="string">"  orb  $1, (%edx, %edi, 1)\n"</span><span class="comment">//如果不计数,则用0,1来标识，shm[cur_location^pre_location]=1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">  <span class="string">"  incb (%edx, %edi, 1)\n"</span><span class="comment">//shm[cur_location^pre_location]++,这里会对tuple的命中次数计数。</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* ^SKIP_COUNTS */</span></span></span><br><span class="line">  <span class="string">"\n"</span></span><br></pre></td></tr></table></figure>
+<p>后面的部分逻辑单独在下面分析。</p>
+<h5 id="3-3-2-3-fork-server"><a href="#3-3-2-3-fork-server" class="headerlink" title="3.3.2.3 fork server"></a>3.3.2.3 fork server</h5><p>在目标程序target编译之后，就会调用afl-fuzz进行fuzzing。afl会将输入的send进行变异，然后将这些变异的文件喂给target执行，并监测target的执行状态。其中涉及到大量的fork和执行target的过程。这个由fork server来实现。<br>fuzzer通过与fork server通信来进行fuzzing。在target进程启动之后，会启动一个fork server进程，该进程用来fork子进程和执行target。fuzzer通过两个管道与fork server 通信，一个状态管道，一个控制命令管道。fuzzer往控制命令管道写命令，fork server从命令管道读命令；fork server往状态管道写状态，fuzzer从状态管道读状态来控制接下来的fuzz流程。<br>下面是具体的fork server 的逻辑：<br>在进行fuzz前，fuzzer会fork子进程，也就是作为后面的fork server。之后的fork都是由fork server来执行。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1987</span>   forksrv_pid = fork();</span><br></pre></td></tr></table></figure></p>
+<p>其中用于fuzzer 和 fork server通信的管道定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//分别是状态管道和命令管道。其中st_pipe[0]为读状态的端口，st_pipe[1]为写状态的端口</span></span><br><span class="line"><span class="number">1980</span>   <span class="keyword">int</span> st_pipe[<span class="number">2</span>], ctl_pipe[<span class="number">2</span>];</span><br></pre></td></tr></table></figure>
+<p>fork server通过读命令管道来获取来自fuzzer的命令；通过写状态管道来向fuzzer报告target的执行状态。这里将两个管道分配到预先指定的FORKSRV_FD和FORKSRV_FD+1中。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2053</span>     <span class="comment">/* Set up control and status pipes, close the unneeded original fds. */</span></span><br><span class="line"><span class="number">2054</span></span><br><span class="line"><span class="number">2055</span>     <span class="keyword">if</span> (dup2(ctl_pipe[<span class="number">0</span>], FORKSRV_FD) &lt; <span class="number">0</span>) PFATAL(<span class="string">"dup2() failed"</span>);</span><br><span class="line"><span class="number">2056</span>     <span class="keyword">if</span> (dup2(st_pipe[<span class="number">1</span>], FORKSRV_FD + <span class="number">1</span>) &lt; <span class="number">0</span>) PFATAL(<span class="string">"dup2() failed"</span>);</span><br><span class="line"><span class="number">2057</span></span><br></pre></td></tr></table></figure></p>
+<p>fork server从状态管道中读取状态，如果得到四字节的“hello”消息，说明fork server已经准备就绪。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2113</span> <span class="comment">//从管道读取状态</span></span><br><span class="line"><span class="number">2114</span>   rlen = read(fsrv_st_fd, &amp;status, <span class="number">4</span>);</span><br><span class="line">......</span><br><span class="line"><span class="number">2124</span>   <span class="keyword">if</span> (rlen == <span class="number">4</span>) &#123;</span><br><span class="line"><span class="number">2125</span>     OKF(<span class="string">"All right - fork server is up."</span>);</span><br><span class="line"><span class="number">2126</span>     <span class="keyword">return</span>;</span><br><span class="line"><span class="number">2127</span>   &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="3-3-2-4-fork-server-与-fuzzer-通信"><a href="#3-3-2-4-fork-server-与-fuzzer-通信" class="headerlink" title="3.3.2.4 fork server 与 fuzzer 通信"></a>3.3.2.4 fork server 与 fuzzer 通信</h5><p>首先fork server 通过写状态管道来通知fuzzer，已经准备完毕可以开始fuzz了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">245</span>   <span class="string">"__afl_forkserver:\n"</span></span><br><span class="line">......</span><br><span class="line"><span class="number">259</span>   <span class="string">"  pushl $4          /* length    */\n"</span></span><br><span class="line"><span class="number">260</span>   <span class="string">"  pushl $__afl_temp /* data      */\n"</span></span><br><span class="line"><span class="number">261</span>   <span class="string">"  pushl $"</span> STRINGIFY((FORKSRV_FD + <span class="number">1</span>)) <span class="string">"  /* file desc */\n"</span></span><br><span class="line"><span class="number">262</span>   <span class="string">"  call  write\n"</span></span><br><span class="line"><span class="number">263</span>   <span class="string">"  addl  $12, %esp\n"</span></span><br></pre></td></tr></table></figure>
+<p>然后进行循环等待状态，通过读命令管道，等待来自fuzzer的命令。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">268</span>   <span class="string">"__afl_fork_wait_loop:\n"</span></span><br><span class="line"><span class="number">269</span>   <span class="string">"\n"</span></span><br><span class="line"><span class="number">270</span>   <span class="string">"  /* Wait for parent by reading from the pipe. Abort if read fails."</span></span><br><span class="line"><span class="number">271</span>   <span class="string">"     在这里处于等待状态，通过读命令管道，来接受来自fuzzer的命令，是否开始fuzz */\n"</span></span><br><span class="line"><span class="number">272</span>   <span class="string">"\n"</span></span><br><span class="line"><span class="number">273</span>   <span class="string">"  pushl $4          /* length    */\n"</span></span><br><span class="line"><span class="number">274</span>   <span class="string">"  pushl $__afl_temp /* data      */\n"</span></span><br><span class="line"><span class="number">275</span>   <span class="string">"  pushl $"</span> STRINGIFY(FORKSRV_FD) <span class="string">"        /* file desc */\n"</span></span><br><span class="line"><span class="number">276</span>   <span class="string">"  call  read\n"</span></span><br><span class="line"><span class="number">277</span>   <span class="string">"  addl  $12, %esp\n"</span></span><br></pre></td></tr></table></figure>
+<p>一旦接收到来自fuzzer的命令，就调用fork得到子进程，如进程创建成功，则跳转到__afl_fork_resume函数，执行target进程。父进程继续作为fork server运行，并通过写状态管道将子进程的pid传给fuzzer。然后等待子进程执行完毕，再通过写状态管道将子进程结束状态传递给fuzzer。然后再次进入等待状态。这些具体的代码就不贴了。</p>
+<h3 id="3-4-FUZZ-模块分析"><a href="#3-4-FUZZ-模块分析" class="headerlink" title="3.4 FUZZ 模块分析"></a>3.4 FUZZ 模块分析</h3><p>这个部分是AFL的核心模块，但我只讲其中几个比较核心的部分进行分析。</p>
+<h4 id="3-4。1-共享内存"><a href="#3-4。1-共享内存" class="headerlink" title="3.4。1 共享内存"></a>3.4。1 共享内存</h4><p>AFL的共享内存用来保存tuple信息，其中包括tuple命中与否和命中次数，所以AFL中每个tuple都是占用一个字节来记录信息而不是一个比特。AFL的共享内存大小是固定的，设定为64KB。通过hash来进行映射，也就存在碰撞的问题，导致记录的tuple信息并不一定准确。<br>afl-fuzz.c源码中，共享内存初始化操作在setup_shm()函数中，具体逻辑如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">EXP_ST <span class="keyword">void</span> <span class="title">setup_shm</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  u8* shm_str;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!in_bitmap) <span class="built_in">memset</span>(virgin_bits, <span class="number">255</span>, MAP_SIZE);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">memset</span>(virgin_tmout, <span class="number">255</span>, MAP_SIZE);</span><br><span class="line">  <span class="built_in">memset</span>(virgin_crash, <span class="number">255</span>, MAP_SIZE);</span><br><span class="line"><span class="comment">//分配一块大小为64k的共享内存</span></span><br><span class="line">  shm_id = shmget(IPC_PRIVATE, MAP_SIZE, IPC_CREAT | IPC_EXCL | <span class="number">0600</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (shm_id &lt; <span class="number">0</span>) PFATAL(<span class="string">"shmget() failed"</span>);</span><br><span class="line"></span><br><span class="line">  atexit(remove_shm);<span class="comment">//注册终止函数，即main函数执行结束后调用的函数，在函数结束之后，回收这块共享内存</span></span><br><span class="line"></span><br><span class="line">  shm_str = alloc_printf(<span class="string">"%d"</span>, shm_id);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* If somebody is asking us to fuzz instrumented binaries in dumb mode,</span></span><br><span class="line"><span class="comment">     we don't want them to detect instrumentation, since we won't be sending</span></span><br><span class="line"><span class="comment">     fork server commands. This should be replaced with better auto-detection</span></span><br><span class="line"><span class="comment">     later on, perhaps? */</span></span><br><span class="line"><span class="comment">//将该共享变量的标识赋值给环境变量，从而之后的fork的子进程可以访问环境管理，来访问这块共享内存</span></span><br><span class="line">  <span class="keyword">if</span> (!dumb_mode) setenv(SHM_ENV_VAR, shm_str, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">  ck_free(shm_str);</span><br><span class="line"><span class="comment">//把共享内存区对象映射到调用进程的地址空间，内存标识存放在trace_bits变量</span></span><br><span class="line">  trace_bits = shmat(shm_id, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (!trace_bits) PFATAL(<span class="string">"shmat() failed"</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>AFL中通过名为virgin_bits和trace_bits的bitmap来分别记录总的tuple和当前的tuple信息。</p>
+<h4 id="3-4-2-运行测试样例"><a href="#3-4-2-运行测试样例" class="headerlink" title="3.4.2 运行测试样例"></a>3.4.2 运行测试样例</h4><p>在fork server准备就绪的前提下，当fuzzer要执行某个测试样例时，会调用run_target函数进程处理。run_target函数中，如果fuzz选择的是dumb模式，则不会依赖fork server来执行target，会直接调用execve()函数来执行。<br>若是non-dumb模式。fuzzer通过写命令管道通知fork server执行target，并通过读状态管道来获取target结束状态。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2365</span>     <span class="comment">/* In non-dumb mode, we have the fork server up and running, so simply</span></span><br><span class="line"><span class="comment">2366        tell it to have at it, and then read back PID. */</span></span><br><span class="line"><span class="number">2367</span></span><br><span class="line"><span class="number">2368</span>     <span class="keyword">if</span> ((res = write(fsrv_ctl_fd, &amp;prev_timed_out, <span class="number">4</span>)) != <span class="number">4</span>) &#123;</span><br><span class="line">......</span><br><span class="line"><span class="number">2375</span>     <span class="keyword">if</span> ((res = read(fsrv_st_fd, &amp;child_pid, <span class="number">4</span>)) != <span class="number">4</span>) &#123;</span><br><span class="line"><span class="number">2376</span></span><br><span class="line">......</span><br><span class="line"><span class="number">2382</span>     <span class="keyword">if</span> (child_pid &lt;= <span class="number">0</span>) FATAL(<span class="string">"Fork server is misbehaving (OOM?)"</span>);</span><br><span class="line"><span class="number">2383</span></span><br><span class="line"><span class="number">2384</span>   &#125;</span><br></pre></td></tr></table></figure>
+<p>下面分析几个比较重要的函数源码。</p>
+<h5 id="3-4-2-1-calibrate-case-源码分析"><a href="#3-4-2-1-calibrate-case-源码分析" class="headerlink" title="3.4.2.1 calibrate_case()源码分析"></a>3.4.2.1 calibrate_case()源码分析</h5><p>在第一遍fuzz–dry run，会调用calibrate_case函数对测试样例进行校准。这个过程在处理输入目录时完成，以便于早期发现就警告有问题的测试样例，或者在发现新的路径来检测遍历行为等。<br>首先要检查fork_server是否已经运行起来了，若没有，首先运行fork_server。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (dumb_mode != <span class="number">1</span> &amp;&amp; !no_forkserver &amp;&amp; !forksrv_pid)</span><br><span class="line">  init_forkserver(argv);</span><br></pre></td></tr></table></figure>
+<p>下面有个循环，也就是每个测试样例，AFL会运行多次，而不是简单的运行一次，每次都会记录tuple的信息</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//每个测试样例都会执行3次或8次，而不是简单的执行一次，执行多次并记录tuple的信息</span></span><br><span class="line"><span class="comment">//具体取决于是否快速校准</span></span><br><span class="line">  <span class="keyword">for</span> (stage_cur = <span class="number">0</span>; stage_cur &lt; stage_max; stage_cur++) &#123;</span><br><span class="line"></span><br><span class="line">    u32 cksum;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!first_run &amp;&amp; !(stage_cur % stats_update_freq)) show_stats();</span><br><span class="line">    <span class="comment">//将测试样例写进文件</span></span><br><span class="line">    write_to_testcase(use_mem, q-&gt;len);</span><br><span class="line">    <span class="comment">//真正运行程序的地方</span></span><br><span class="line">    fault = run_target(argv, use_tmout);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* stop_soon is set by the handler for Ctrl+C. When it's pressed,</span></span><br><span class="line"><span class="comment">       we want to bail out quickly. */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (stop_soon || fault != crash_mode) <span class="keyword">goto</span> abort_calibration;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!dumb_mode &amp;&amp; !stage_cur &amp;&amp; !count_bytes(trace_bits)) &#123;</span><br><span class="line">      fault = FAULT_NOINST;</span><br><span class="line">      <span class="keyword">goto</span> abort_calibration;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//计算trace_bits的checksums,即当前tuple的hash值</span></span><br><span class="line">    cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);</span><br><span class="line">    <span class="comment">//如果此次hash与上次执行的hash不一致</span></span><br><span class="line">    <span class="keyword">if</span> (q-&gt;exec_cksum != cksum) &#123;</span><br><span class="line"></span><br><span class="line">      u8 hnb = has_new_bits(virgin_bits);<span class="comment">//return value : 0,1,2</span></span><br><span class="line">      <span class="comment">//new_bits default value is 0</span></span><br><span class="line">      <span class="keyword">if</span> (hnb &gt; new_bits) new_bits = hnb;</span><br><span class="line">     <span class="comment">//如果不是第一次运行测试样例</span></span><br><span class="line">      <span class="keyword">if</span> (q-&gt;exec_cksum) &#123;</span><br><span class="line"></span><br><span class="line">        u32 i;</span><br><span class="line">	<span class="comment">//这里是以MAP_SIZE来遍历的，是以字节为单位，需要改成以bit为单位</span></span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; MAP_SIZE; i++) &#123;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">if</span> (!var_bytes[i] &amp;&amp; first_trace[i] != trace_bits[i]) &#123;</span><br><span class="line"></span><br><span class="line">            var_bytes[i] = <span class="number">1</span>;</span><br><span class="line">            stage_max    = CAL_CYCLES_LONG;</span><br><span class="line"></span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        var_detected = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;<span class="comment">//如果是第一次运行测试样例</span></span><br><span class="line"></span><br><span class="line">        q-&gt;exec_cksum = cksum;</span><br><span class="line">        <span class="built_in">memcpy</span>(first_trace, trace_bits, MAP_SIZE);</span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="3-4-2-2-run-target-源码分析"><a href="#3-4-2-2-run-target-源码分析" class="headerlink" title="3.4.2.2 run_target()源码分析"></a>3.4.2.2 run_target()源码分析</h5><p>不想写了，下次再继续写吧。<strong>TODO</strong></p>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><p><a href="https://blog.csdn.net/qq_32464719/article/details/80592902" target="_blank" rel="noopener">https://blog.csdn.net/qq_32464719/article/details/80592902</a><br>afl实现细节 ： <a href="http://rk700.github.io/2017/12/28/afl-internals/" target="_blank" rel="noopener">http://rk700.github.io/2017/12/28/afl-internals/</a><br><a href="https://bbs.pediy.com/thread-254705.htm" target="_blank" rel="noopener">https://bbs.pediy.com/thread-254705.htm</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/11/09/AFL-fuzz-入门&源码分析/" title="AFL fuzz 入门 & 源码分析">https://v1ckydxp.github.io/archives/2019/11/09/AFL-fuzz-入门&源码分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/AFL/" rel="tag"># AFL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/02/2019-09-02-cve-2017-16995 漏洞复现/" rel="next" title="CVE-2017-16995 本地提权漏洞分析与复现">
+                <i class="fa fa-chevron-left"></i> CVE-2017-16995 本地提权漏洞分析与复现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/09/2019-10-04-Linux内核页面分配/" rel="prev" title="Linux 内核物理页面内存分配">
+                Linux 内核物理页面内存分配 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.cnblogs.com/helica/" title="helica" target="_blank">helica</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://ama2in9.top/" title="ama2in9" target="_blank">ama2in9</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-前言"><span class="nav-number">1.</span> <span class="nav-text">0x00 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-AFL-简介"><span class="nav-number">2.</span> <span class="nav-text">0x01 AFL 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-下载、安装"><span class="nav-number">3.</span> <span class="nav-text">0x02 下载、安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-报错"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 报错</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03源码分析"><span class="nav-number">4.</span> <span class="nav-text">0x03源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-AFL源码目录结构"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 AFL源码目录结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-插桩模块分析"><span class="nav-number">4.2.</span> <span class="nav-text">3.3 插桩模块分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-1-afl-as-c源码分析"><span class="nav-number">4.2.1.</span> <span class="nav-text">3.3.1 afl-as.c源码分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-2-afl-as-h源码分析"><span class="nav-number">4.2.2.</span> <span class="nav-text">3.3.2 afl-as.h源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-3-2-1-trampoline-fmt-32"><span class="nav-number">4.2.2.1.</span> <span class="nav-text">3.3.2.1 trampoline_fmt_32</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-3-2-2-main-playload-32"><span class="nav-number">4.2.2.2.</span> <span class="nav-text">3.3.2.2 main_playload_32</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-3-2-3-fork-server"><span class="nav-number">4.2.2.3.</span> <span class="nav-text">3.3.2.3 fork server</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-3-2-4-fork-server-与-fuzzer-通信"><span class="nav-number">4.2.2.4.</span> <span class="nav-text">3.3.2.4 fork server 与 fuzzer 通信</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-FUZZ-模块分析"><span class="nav-number">4.3.</span> <span class="nav-text">3.4 FUZZ 模块分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-4。1-共享内存"><span class="nav-number">4.3.1.</span> <span class="nav-text">3.4。1 共享内存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-4-2-运行测试样例"><span class="nav-number">4.3.2.</span> <span class="nav-text">3.4.2 运行测试样例</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-4-2-1-calibrate-case-源码分析"><span class="nav-number">4.3.2.1.</span> <span class="nav-text">3.4.2.1 calibrate_case()源码分析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-4-2-2-run-target-源码分析"><span class="nav-number">4.3.2.2.</span> <span class="nav-text">3.4.2.2 run_target()源码分析</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#reference"><span class="nav-number">5.</span> <span class="nav-text">reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">59.9k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
