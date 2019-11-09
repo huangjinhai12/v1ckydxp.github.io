@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="0x00 总体思路在AFL的基础上进行改进，AFL是基于边覆盖率的，没有考虑基本块覆盖。改进的想法是做基本块覆盖，使之在fuzzing的过程中可以做到基本块全覆盖。如何实现基本块全覆盖，初步想法是将fuzz分为两个阶段，以下是具体实现思路：  第一阶段，沿用afl的fuzzing流程。将所有能执行到新的基本块样例重新放回输入队列进行变异，并实时监测代码覆盖率，若在一个有限的时间内，代码覆盖率趋于稳">
+<meta property="og:type" content="article">
+<meta property="og:title" content="v1cky&#39;blog">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/10/07/基于AFL的代码块全覆盖的源码FUZZ/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="0x00 总体思路在AFL的基础上进行改进，AFL是基于边覆盖率的，没有考虑基本块覆盖。改进的想法是做基本块覆盖，使之在fuzzing的过程中可以做到基本块全覆盖。如何实现基本块全覆盖，初步想法是将fuzz分为两个阶段，以下是具体实现思路：  第一阶段，沿用afl的fuzzing流程。将所有能执行到新的基本块样例重新放回输入队列进行变异，并实时监测代码覆盖率，若在一个有限的时间内，代码覆盖率趋于稳">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-11-03T01:38:43.326Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="v1cky&#39;blog">
+<meta name="twitter:description" content="0x00 总体思路在AFL的基础上进行改进，AFL是基于边覆盖率的，没有考虑基本块覆盖。改进的想法是做基本块覆盖，使之在fuzzing的过程中可以做到基本块全覆盖。如何实现基本块全覆盖，初步想法是将fuzz分为两个阶段，以下是具体实现思路：  第一阶段，沿用afl的fuzzing流程。将所有能执行到新的基本块样例重新放回输入队列进行变异，并实时监测代码覆盖率，若在一个有限的时间内，代码覆盖率趋于稳">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/10/07/基于AFL的代码块全覆盖的源码FUZZ/">
+
+
+
+
+
+  <title> | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/10/07/基于AFL的代码块全覆盖的源码FUZZ/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline"></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-10-07T12:10:00+08:00">
+                2019-10-07
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2019-11-03T09:38:43+08:00">
+                2019-11-03
+              </time>
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="0x00-总体思路"><a href="#0x00-总体思路" class="headerlink" title="0x00 总体思路"></a>0x00 总体思路</h3><p>在AFL的基础上进行改进，AFL是基于边覆盖率的，没有考虑基本块覆盖。改进的想法是做基本块覆盖，使之在fuzzing的过程中可以做到基本块全覆盖。如何实现基本块全覆盖，初步想法是将fuzz分为两个阶段，以下是具体实现思路：</p>
+<ol>
+<li>第一阶段，沿用afl的fuzzing流程。将所有能执行到新的基本块样例重新放回输入队列进行变异，并实时监测代码覆盖率，若在一个有限的时间内，代码覆盖率趋于稳定不再变化，则进入第二阶段。用一块共享内存bitmap来记录基本块的命中与否，以bit为单位，因为不记录基本块的命中次数，只记录是否命中。源码插桩统计的基本块数n，共享内存的大小为n/8B。</li>
+<li>第二阶段，该阶段针对第一阶段没有执行到的基本块进行fuzzing。可以通过遍历bitmap得知基本块的命中情况，将在第一轮fuzzing过程中没有命中的基本块拿出来，分析出执行到这些基本块的所有的控制流依赖条件语句（就是能到达基本块的路径上的所有条件语句），并通过动态污点分析，确定与这些条件语句相关的输入字节，并且在变异的过程中保证目标基本块可达。（现在很多采用污点分析fuzz工具都有一个通病就是效率很低，通常比没有加污点分析的fuzz工具要慢十几倍。之所以会这么慢，是因为一个稍微复杂一点的程序，基本块的数量也是非常多的，这样全部分析就会导致fuzz的速度很慢。因为要做到基本块全覆盖，所以我只对在第一轮没有执行到的基本块进行污点分析，这个分析的基本块的数量会大大减少。）<strong>这里循环fuzzing剩下基本块的时候，在分析出所有基本块的先验条件语句，从路径最短的开始变异。</strong></li>
+</ol>
+<h3 id="0x01-模块"><a href="#0x01-模块" class="headerlink" title="0x01 模块"></a>0x01 模块</h3><p>具体实现可以分为7个模块</p>
+<ol>
+<li>输入变异模块。之后会考虑污点分析，afl的变异策略有确定性策略和随机性策略两种。在不考虑污点分析的情况下，沿用afl的变异策略，但是这样的效率比较低下，因为数量会非常大。如果加入了污点分析，在进行基本块的定位时，只去变异与条件语句有关的比特，这样会大大加快变异效率。在已经执行到目标基本块后，可以沿用afl的变异策略。</li>
+<li>语料库迭代部分：对变异种子的选择，在afl中，是将能执行到新的tuple的样例重新放回输入队列，继续变异。但是这种效率不是很高，这里需要想一个新的种子迭代算法，来提升效率和基本块覆盖率。<strong>将afl存储分支信息是用一个64kb的共享内存，之所以是用byte而不是bit，是因为还要记录tuple命中数。改进思路是在插桩时，统计出基本块的数量n，然后申请一个共享内存大小为nbit，用一个bit来记录基本块的命中与否，不记录基本块的命中次数。然后只将能执行到新的基本块的测试样例重新放到语料库继续变异。</strong></li>
+<li>源码插桩模块： 利用源码插桩来获取基本块覆盖率，和得到基本块的支配关系。还要能得到目标基本块的控制流条件语句（控制流依赖关系：post-dominator tree  来实现（llvm 提供了程序内的post-dominator tree 的库，没有提供程序间的post-dominator tree ）。要得到目标基本块的控制流依赖条件语句。</li>
+<li><p>静态分析/污点分析模块：分析输入中的哪些字节是流向目标基本块的控制条件语句。得到目标基本块的目标条件语句的数据流依赖条件语句。</p>
+<ul>
+<li><p>比如下面这个样例，输入的前4字节控制x,输入后4字节控制y，那么3行中是目标基本块。该目标基本块对应的目标条件语句是行2，哪些污点分析就是要分析出输入中的哪几个字节影响x,y。然后在fuzzing的第二个阶段指对这些字节进行变异。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>&#123;</span><br><span class="line">     <span class="keyword">if</span>(x + y &lt; <span class="number">3</span>)&#123; ==&gt; 目标条件语句</span><br><span class="line">         z = <span class="number">1</span>; ==&gt; 目标基本块</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">else</span>&#123;</span><br><span class="line">         z = <span class="number">0</span>;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+<ol start="5">
+<li>fuzz模块：核心模块，初步计划是沿用afl的fuzz算法，这个地方需要加以创新。这里初步想法是，整个fuzzing过程分为两个阶段，前提条件是，有一块共享内存，用于来记录所有基本块的执行情况。<br> <strong>PS:</strong> : afl对种子进行fuzz时，在使用随机策略时，随机选择一系列的变异策略并应用到种子输入的随机位置；在确定性变异策略阶段，afl在输入的每个字节上进行某些变异策略。</li>
+<li>覆盖率统计模块：统计基本块覆盖率，并将其结果反馈给fuzz模块，选择下一步的fuzz策略。</li>
+<li>monitor：检查程序的状态，记录crash，并过滤掉重复的crash。</li>
+</ol>
+<h3 id="具体计划"><a href="#具体计划" class="headerlink" title="具体计划"></a>具体计划</h3><p>具体计划分为以下几个大步骤：</p>
+<ol>
+<li>第一阶段的实现：<br> a. 前面一步需要得到程序的基本块的总数，要通过源码插桩实现。分析afl-as部分，如果afl已经实现了在所有的基本块插入探针，则这步就省略。得到基本块的总数为BLOCK_NUMBER，每一个基本块有一个范围在0~BLOCK_NUMBER的随机数来唯一标识。（这里暂时不考虑基本块数量爆炸的问题，因为有些复杂的程序，基本块数量会非常多，导致共享内存需要很大，申请内存会失败）<br> b. 修改afl代码共享内存部分：映射一块共享内存bitmap，来记录基本块的命中与否，在整个fuzz的过程中如果有测试样例执行到了该基本块，将对应的为置为1，否则为0。<br> c. 修改afl代码中tuple信息记录部分。将原来代码中的通过前一个基本块的key和当前基本块的key做异或的边的部分改成直接记录基本块的命中处理。<br> d. 设置一个stable_time。若代码覆盖率在这个时间段内保存不变，或者只有很小的波动。则进入第二个阶段。</li>
+<li>第二阶段的实现：<br> a. 定位在第一阶段没有执行到的基本块。<br> b. 循环遍历上面的基本块，获取其控制流依赖条件语句。（这里面涉及很多细节，设计很多技术，还不清楚，要进一步去调研）<br> c. 循环遍历上面的基本块，获取其数据流依赖条件语句。（很多细节，很多要用到的技术，待进一步调研）<br> d. 找到一种可以获取全局最小值的算法，解约束。（机器学习里面有很多）<br> e. 制定变异策略。根据前面的控制流依赖和数据流依赖，指定恰当的变异策略满足约束，使得在第一阶段没有执行到的基本块全部可达。</li>
+</ol>
+<h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p><a href="https://bbs.pediy.com/thread-249912.htm" target="_blank" rel="noopener">https://bbs.pediy.com/thread-249912.htm</a><br><a href="https://cool-y.github.io/2019/07/01/AFL-first-learn/" target="_blank" rel="noopener">https://cool-y.github.io/2019/07/01/AFL-first-learn/</a><br><a href="http://www.voidcn.com/article/p-tlwvjyji-za.html" target="_blank" rel="noopener">http://www.voidcn.com/article/p-tlwvjyji-za.html</a><br><a href="https://web.cs.ucdavis.edu/~hchen/paper/chen2019matryoshka.pdf" target="_blank" rel="noopener">https://web.cs.ucdavis.edu/~hchen/paper/chen2019matryoshka.pdf</a></p>
+<p>AFL [45], libFuzzer [34], honggfuzz [40] and VUzzer都是基于代码覆盖率引导的fuzz工具<br>LibFuzzer [34] and honggfuzz 利用clang 编译器提供的SanitizerCoverage [4] instrumentation方法进行基本块覆盖率追踪。</p>
+<h3 id="清华讲座笔记-–-Matryoshka-Fuzzing-Deeply-Nested-Branches"><a href="#清华讲座笔记-–-Matryoshka-Fuzzing-Deeply-Nested-Branches" class="headerlink" title="清华讲座笔记 – Matryoshka: Fuzzing Deeply Nested Branches"></a>清华讲座笔记 – Matryoshka: Fuzzing Deeply Nested Branches</h3><p>字节级动态污点追踪：某一个条件的判断输入的那几个字节可以影响，速度慢,对每一个条件语句只做一次污点追踪。<br>把每一个条件判断看错一个函数。把每一个条件判断写出一个对应的函数，一个约束。</p>
+<p>第一步：解约束：梯度下降（机器学习）找到局部最小值，存在的问题，找到的值不是全局最小值。x向量是整数，导致函数不可倒<br>计算每一维的偏微分<br>第二步：解决嵌套条件<br>控制流依赖关系：post-dominator tree  来实现（llvm 提供了程序内的post-dominator tree 的库，没有提供程序间的post-dominator tree<br>数据流依赖关系：</p>
+<p>rust 语言<br>LAVA-MA 数据集：</p>
+<h3 id="污点分析学习笔记"><a href="#污点分析学习笔记" class="headerlink" title="污点分析学习笔记"></a>污点分析学习笔记</h3><p>欠污染：由于对隐式流污点传播处理不当导致本应被标记为污点的变量没有被标记的问题。<br>过污染：污点标记过多而导致污点变量大量扩散的问题。<br>无害处理：是指污点数据在经过无害处理后，污点数据本身不再携带敏感信息或者针对该数据的操作不会再对系统产生危害。换言之，污点数据在经过无害处理模块后，污点标记可以被移除。<strong>正确使用无害处理可以降低系统中的污点标记的数量，提高污点分析的效率，并且避免由于污点污点扩散导致的分析结果不精确的问题。</strong></p>
+<p>静态污点分析技术：是指在不运行程序且不修改代码的前提下，通过分析程序变量间的数据依赖关系来检测数据能否从污点源传播到污点汇聚点。</p>
+<ol>
+<li>要根据程序中函数之间的调用关系构建调用图（控制流图）</li>
+<li>常见的显式流污点传播方式包括直接复制传播、通过函数调用传播以及通过别名（指针）传播。<br>动态污点分析技术：优点是误报率低，可信度高。缺点是漏报率较高，平台相关性高，资源消耗高。<br>动态污点分析实现技术：</li>
+<li>污点数据标记：污点数据是指软件系统所接受的外部输入数据。当程序使用这些数据时，一般通过函数或系统调用来进行数据访问和处理，因此只需要对这些函数或系统调用进行监控就行。</li>
+</ol>
+<h3 id="CollAFL-–-论文笔记"><a href="#CollAFL-–-论文笔记" class="headerlink" title="CollAFL –  论文笔记"></a>CollAFL –  论文笔记</h3><p><strong>HASH碰撞解决</strong><br> 只是单纯的扩大共享内存的大小不能解决问题，反而会带来性能的下降<br> 用贪心算法去找每个边的参数，<br> 一般程序中60%的基本块只有一个先例基本块<br> 对于有多个边到达的基本块，计算HASH值得时候</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/10/07/基于AFL的代码块全覆盖的源码FUZZ/" title>https://v1ckydxp.github.io/archives/2019/10/07/基于AFL的代码块全覆盖的源码FUZZ/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/10/2019-09-10-CVE-2018-18281-Linux kernel TLB漏洞/" rel="next" title="CVE-2018-18281 漏洞分析与复现">
+                <i class="fa fa-chevron-left"></i> CVE-2018-18281 漏洞分析与复现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/10/21/2019-10-21-llvm clang 入门/" rel="prev" title>
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">39</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.cnblogs.com/helica/" title="helica" target="_blank">helica</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://ama2in9.top/" title="ama2in9" target="_blank">ama2in9</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#0x00-总体思路"><span class="nav-number">1.</span> <span class="nav-text">0x00 总体思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x01-模块"><span class="nav-number">2.</span> <span class="nav-text">0x01 模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#具体计划"><span class="nav-number">3.</span> <span class="nav-text">具体计划</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reference"><span class="nav-number">4.</span> <span class="nav-text">reference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#清华讲座笔记-–-Matryoshka-Fuzzing-Deeply-Nested-Branches"><span class="nav-number">5.</span> <span class="nav-text">清华讲座笔记 – Matryoshka: Fuzzing Deeply Nested Branches</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#污点分析学习笔记"><span class="nav-number">6.</span> <span class="nav-text">污点分析学习笔记</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CollAFL-–-论文笔记"><span class="nav-number">7.</span> <span class="nav-text">CollAFL –  论文笔记</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">67.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
