@@ -79,19 +79,19 @@
 
 
 
-<meta name="description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。 0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编译时">
+<meta name="description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。   0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编">
 <meta name="keywords" content="AFL">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AFL fuzz 入门 &amp; 源码分析">
 <meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/11/09/AFL-fuzz-入门&源码分析/index.html">
 <meta property="og:site_name" content="v1cky&#39;blog">
-<meta property="og:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。 0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编译时">
+<meta property="og:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。   0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15710161322527.jpg">
-<meta property="og:updated_time" content="2019-11-09T12:57:48.640Z">
+<meta property="og:updated_time" content="2019-11-09T13:00:08.632Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AFL fuzz 入门 &amp; 源码分析">
-<meta name="twitter:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。 0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编译时">
+<meta name="twitter:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。   0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编">
 <meta name="twitter:image" content="https://v1ckydxp.github.io/images/15710161322527.jpg">
 
 
@@ -310,7 +310,7 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-11-09T20:57:48+08:00">
+              <time title="Post modified" itemprop="dateModified" datetime="2019-11-09T21:00:08+08:00">
                 2019-11-09
               </time>
             
@@ -402,7 +402,7 @@
       
 
       
-        <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。<br>    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。</p>
+        <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。<br>    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。  </p>
 <h2 id="0x01-AFL-简介"><a href="#0x01-AFL-简介" class="headerlink" title="0x01 AFL 简介"></a>0x01 AFL 简介</h2><p>​    AFL Fuzzing工具的原理是：对源码进行重新编译时进行插桩，在进行fuzzing时，会把执行了新的tuple或新的tuple命中组的测试样例重新放回语料库进行编译，不断优化种子，来提高代码覆盖率。而且AFL是基于边覆盖率的，之所以没有采用基本块覆盖率是因为大部分的漏洞产生都是由于一些不确定性的跳转或者状态导致，而不是只是单纯的是否执行到了这块代码，所以采用边覆盖率比基于代码覆盖率更有意义。AFL用了一块64KB的共享内存来存放tuple的信息，而且是采用byte来记录tuple的信息，之所以采用byte不是bit是因为还要记录命中数。使用这块有限的共享内存存在碰撞，会导致边覆盖率不准确，这是AFL的一个缺点。</p>
 <h2 id="0x02-下载、安装"><a href="#0x02-下载、安装" class="headerlink" title="0x02 下载、安装"></a>0x02 下载、安装</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz</span><br><span class="line">$ tar xvf afl-latest.tgz</span><br><span class="line">$ <span class="built_in">cd</span> afl-2.52b</span><br><span class="line">$ sudo make &amp;&amp; sudo make install</span><br></pre></td></tr></table></figure>
 <h3 id="2-1-报错"><a href="#2-1-报错" class="headerlink" title="2.1 报错"></a>2.1 报错</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[-] Hmm, your system is configured to send core dump notifications to an</span><br><span class="line">    external utility. This will cause issues: there will be an extended delay</span><br><span class="line">    between stumbling upon a crash and having this information relayed to the</span><br><span class="line">    fuzzer via the standard waitpid() API.</span><br><span class="line"></span><br><span class="line">    To avoid having crashes misinterpreted as timeouts, please <span class="built_in">log</span> <span class="keyword">in</span> as root</span><br><span class="line">    and temporarily modify /proc/sys/kernel/core_pattern, like so:</span><br><span class="line"></span><br><span class="line">    <span class="built_in">echo</span> core &gt;/proc/sys/kernel/core_pattern</span><br><span class="line"></span><br><span class="line">[-] PROGRAM ABORT : Pipe at the beginning of <span class="string">'core_pattern'</span></span><br><span class="line">         Location : check_crash_handling(), afl-fuzz.c:7275</span><br></pre></td></tr></table></figure>
