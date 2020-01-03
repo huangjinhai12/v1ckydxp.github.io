@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="—1是哦看看我哟看t‘ itle:  《程序员的自我修养–链接、装载与库》 – 阅读笔记date: 2019/12/22tags:  程序员的自我修养categories:  阅读笔记   《程序员的自我修养-链接、装载与库》– 笔记 前言只挑了几张章看，下面是是 第一章 总线分为南桥和北桥。北桥用于连接高速设备；南桥用于连接低速的设备，比如键盘、鼠标、usb等，由南桥将它们汇总后连接到北桥上。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="v1cky&#39;blog">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/12/22/2019-12-22-《程序员的自我修养-链接、装载与库》-- 笔记/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="—1是哦看看我哟看t‘ itle:  《程序员的自我修养–链接、装载与库》 – 阅读笔记date: 2019/12/22tags:  程序员的自我修养categories:  阅读笔记   《程序员的自我修养-链接、装载与库》– 笔记 前言只挑了几张章看，下面是是 第一章 总线分为南桥和北桥。北桥用于连接高速设备；南桥用于连接低速的设备，比如键盘、鼠标、usb等，由南桥将它们汇总后连接到北桥上。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/15770070305144.jpg">
+<meta property="og:updated_time" content="2020-01-03T14:30:38.641Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="v1cky&#39;blog">
+<meta name="twitter:description" content="—1是哦看看我哟看t‘ itle:  《程序员的自我修养–链接、装载与库》 – 阅读笔记date: 2019/12/22tags:  程序员的自我修养categories:  阅读笔记   《程序员的自我修养-链接、装载与库》– 笔记 前言只挑了几张章看，下面是是 第一章 总线分为南桥和北桥。北桥用于连接高速设备；南桥用于连接低速的设备，比如键盘、鼠标、usb等，由南桥将它们汇总后连接到北桥上。">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/15770070305144.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/12/22/2019-12-22-《程序员的自我修养-链接、装载与库》-- 笔记/">
+
+
+
+
+
+  <title> | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/12/22/2019-12-22-《程序员的自我修养-链接、装载与库》-- 笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline"></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-12-22T19:38:25+08:00">
+                2019-12-22
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2020-01-03T22:30:38+08:00">
+                2020-01-03
+              </time>
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.9k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  16
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>—1是哦看看我哟看<br>t‘ itle:  《程序员的自我修养–链接、装载与库》 – 阅读笔记<br>date: 2019/12/22<br>tags:</p>
+<ul>
+<li>程序员的自我修养<br>categories: </li>
+<li>阅读笔记</li>
+</ul>
+<hr>
+<p>《程序员的自我修养-链接、装载与库》– 笔记</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>只挑了几张章看，下面是是</p>
+<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><ol>
+<li>总线分为<strong>南桥</strong>和<strong>北桥</strong>。北桥用于连接高速设备；南桥用于连接低速的设备，比如键盘、鼠标、usb等，由南桥将它们汇总后连接到北桥上。</li>
+<li><strong>SMP</strong>：对称多处理器。简单说就是每个CPU在系统中所处的位置和所发挥的功能都是一样的，是相互对称的。实际上，速度的提高不能与CPU的数量完全成正比，不一定所有的程序都能分解成若干个不相干的子问题。</li>
+<li><strong>多核处理器</strong>：将多个处理器打包，共享比较昂贵的缓存部件，只保留多个核心，并且以一个处理器进行外包装。</li>
+<li><strong>系统软件</strong>：传统意义上的系统软件是只管理计算机本身的软件，以区分普通的应用程序。系统软件分为平台性的和用于程序开发的。平台性的包括操作系统、驱动程序、运行库和系统工具；用于程序开发的包括编译器、链接器、汇编器等开发工具和开发库。</li>
+<li>计算机体系结构中每个层次之间通信的协议称为接口。除了应用程序和硬件，其他都是属于中间层，中间层是对下面那层的包转和扩展。</li>
+<li>运行库使用操作系统提供的系统调用接口，系统调用接口在实际中往往以软件中断来实现。</li>
+<li>操作系统内核层使用硬件提供的接口与硬件进行通信，这种接口称作硬件规格。</li>
+<li><strong>多任务系统</strong>：所有的应用都以进程的方式运行在比操作系统权限更低的级别，每个进程都有自己独立的地址空间。</li>
+<li><strong>CPU分配方式</strong>：在多任务操作系统中，CPU由操作系统统一进行分配，每个进程根据优先级的高低都有机会获得CPU，如果一个进程运行超过了一定时间，则操作系统就会暂停该进程，将CPU资源分配给其他进程，这种CPU分配方式成为抢占式。</li>
+<li>硬盘的基本存储单位是扇区，每个扇区一般是512字节。一个硬盘有多个盘片，每个盘片有两面，每面按照同心圆划分为若干个磁道，每个磁道有若干个扇区。那么一个硬盘的大小为2x盘片数x磁道数x扇区数x单个扇区存储字节数 = 总的字节。</li>
+<li><strong>MMU</strong>（Memory Management Unit）: <strong>内存管理单元</strong>，CPU发出的是VA（Virtual Address）,经过MMU转换得到PA（Physical Address)。一般MMU都集成在CPU内部。</li>
+<li><strong>线程</strong>： 又称为轻量级进程（LightWeight Process，LWP）。线程可以访问进程内存中的数据，同时线程也有自己的私有空间，包括栈、线程局部存储、寄存器。线程可以共享进程的文件，线程A打开的文件可以由线程B读写。</li>
+<li>只有在线程数小于处理器数的情况下，线程的并发才是真正的并发，这个时候所有的线程运行在不同的处理器上。在单处理上，线程的并发是模拟出来的状态。操作系统会让线程程序轮流执行，每次每个线程执行一小段时间。这样的一个不断在处理器上切换不同线程的行为称为线程调度。</li>
+<li>在<strong>线程调度</strong>中，线程通常至少有三种状态。分别是运行、就绪、等待。<br><img src="/images/15770070305144.jpg" alt></li>
+<li><strong>IO密集型线程</strong>：频繁等待的线程；<strong>CPU密集型线程</strong>：很少等待的线程，频繁的进行大量的计算的线程。IO密集型线程总是比CPU密集型线程容易得到优先级的提升。</li>
+<li><strong>线程优先级改变的方式</strong>：用户指定优先级、根据等待状态的频繁程度提升或降低优先级、长时间得不到执行而被提升优先级。</li>
+<li><strong>fork</strong>产生的新任务的速度非常快，因此fork并不复制原任务的内存空间，而是与原任务共享一个写时复制（COW)的内存空间。</li>
+<li>fork只能产生本任务的镜像，因此必须要使用exec配合才能启动别的新任务。</li>
+<li>fork和<strong>exec</strong>通常用于产生新任务，clone常用于产生新线程。</li>
+<li>单指令操作称为原子的，单指令的执行是不会被系统中断的。在i386系统中inc指令可以直接进行加一操作。</li>
+<li><strong>同步</strong>：是指在一个线程访问数据未结束的时候，其他线程不得对同意数据进行访问。同步常用的方法是加锁，线程在访问共享数据时，先获取锁，访问结束后释放锁。<ol>
+<li><strong>二元信号量</strong>是最简单的一种锁，具有两种状态：占用和非占用。但它只适合被唯一一个线程独占访问的资源。</li>
+<li>对于允许多个线程并发访问的资源，通常使用多元信号量简称<strong>信号量</strong>。一个初始值为N的信号量允许N个线程并发访问。</li>
+<li><strong>互斥量</strong>和二元信号量相似，都只适合被唯一个线程独占的资源。区别在于信号量可以被系统中的一个线程获取之后由另一个线程释放。而互斥量则要求由获取的线程负责释放。</li>
+<li><strong>临界区</strong>：临界区和前面三种的区别在于只允许本进程访问。</li>
+<li><strong>读写锁</strong>：读写锁有两种获取方式：共享和独占。</li>
+<li><strong>条件变量</strong>：一个条件变量可以被多个线程等待。使用条件变量可以让多线程一起等待某个事件的发生，当事件发生时，所以线程被唤醒并恢复执行。</li>
+</ol>
+</li>
+<li><strong>线程安全</strong>：<br>CPU乱序执行导致线程安全的保障工作变得异常艰难，阻止CPU换序时必须的，现在并不存在可移植的阻止换序的方法。通常情况下时调用CPU一条barrier指令，一条barrier指令可以阻止CPU将该指令之前的指令交换到barrier之后。</li>
+</ol>
+<h2 id="第二章-编译和链接"><a href="#第二章-编译和链接" class="headerlink" title="第二章 编译和链接"></a>第二章 编译和链接</h2><ol>
+<li>源文件到可执行文件经历的四个过程：<ol>
+<li><strong>预编译</strong>：主要处理源代码文件中以“#”开始的预编译指令，生成.i或.ii文件。预编译后的.i文件不包含任何宏定义，因为所有的宏定义已经被展开，并且包含的文件也被插入到.i文件中。所以当无法判断宏定义是否正确或头文件包含是否正确时，可以查看预编译后的文件内存来定位问题。</li>
+<li><strong>编译</strong>：该过程就是将预处理完的文件进行一系列的词法分析、语法分析、语义分析及优化后生成相应的汇编代码文件。</li>
+<li><strong>汇编</strong>：汇编器是将汇编代码文件转换成机器可以执行的指令，每一个汇编语句几乎都对应一条机器指令。</li>
+<li><strong>链接</strong>：将所有相关的目标文件链接成最后的可执行文件。</li>
+</ol>
+</li>
+<li><strong>语义分析</strong>：语义分析包含<strong>静态语义</strong>和<strong>动态语义</strong>。静态语义是指在编译期可以确定的语义。动态语义是指在运行期才能确定的语义。</li>
+<li><strong>中间代码</strong>：是语法树的顺序表示，非常接近目标代码。中间代码使得编译器可以被分为前端和后端。编译器前端负责产生机器无关的中间代码，编译器后段将中间代码转换成目标机器代码。</li>
+<li><strong>代码生成器</strong>：代码生成器将中间代码转换成机器代码。</li>
+<li><strong>目标代码优化器</strong>：目标代码优化器对机器代码进行优化，比如选择合适的寻址方式、使用位移来代替乘法运算、删除多余指令等。</li>
+<li><strong>链接</strong>：链接过程包括了地址和空间重定位、符号决议和重定位等步骤。<ol>
+<li><strong>重定位</strong>：重新计算各个目标的地址过程称为重定位。</li>
+<li><strong>符号决议</strong>：符号用来表示一个地址，这个地址可能是一段子程序（函数）的起始地址，也可以是一个变量的地址。符号决议也叫做符号绑定、地址绑定、指令绑定等。在静态链接中一般叫做符号决议，在动态链接中一般叫做符号绑定。</li>
+</ol>
+</li>
+<li><strong>静态链接</strong>：最基本的静态链接过程为：每个模块的源文件经过编译器生成目标文件，然后目标文件和库一起链接成最后的可执行文件。最常见的库是运行时库，及是支持程序运行的基本函数的集合。<h2 id="第三章"><a href="#第三章" class="headerlink" title="第三章"></a>第三章</h2></li>
+<li>目标文件的格式：windows下的PE和Linux下的ELF，他们都是COFF格式的变种。目标文件与可执行文件一般采用一种格式存储。动态链接库和静态链接库文件都按照可执行文件存储。<ol>
+<li>文件头：描述整个文件属性</li>
+<li>代码段：源代码编译后的机器指令经常被放在代码段，.code或.text。</li>
+<li>数据段：存储已经初始化的全局变量和局部静态变量数据，.data。</li>
+<li>.bss：存储未初始化的全局变量和静态局部变量。.bss段只是为未初始化的全局变量和局部静态变量预留出位置，并没有内容，所以在文件中不占据空间。</li>
+</ol>
+</li>
+<li>链接过程时只关心全局符号的相互结合，而局部符号、段名、行号等都是对其他文件不可见的，在链接过程中也是无关紧要的。<h2 id="第四章-静态链接"><a href="#第四章-静态链接" class="headerlink" title="第四章 静态链接"></a>第四章 静态链接</h2></li>
+<li>链接器将多个目标文件链接成最后的可执行文件，目前通常都是将<strong>相似段合并</strong>的链接方式，采用这种方式的链接器都采用一种<strong>两步链接</strong>的方法。即第一步进行空间与地址分配：链接器将会获取目标文件的段长度，并且将它们合并，计算出输出文件中哥哥段合并后的长度，并建立映射关系。第二步是符号解析与重定位，这步是链接过程中的核心，主要是利用第一步收集到的所有信息，读取输入文件中段的数据，重定位信息，并且进行符号解析和重定位、调整代码位置等。</li>
+<li><strong>VMA</strong>：虚拟内存地址。<strong>LMA</strong>：加载地址。通常情况下这两种地址是相同的。但是在一些嵌入式系统中，是不相同的。</li>
+<li>在链接前，目标文件中的所有段的虚拟地址都是0，因为虚拟空间还没分配。当链接之后，可执行文件所有段都被分配到了相应的虚拟地址。</li>
+<li>在Linux下，ELF可执行文件默认从地址0x08048000开始分配。</li>
+<li><strong>重定位</strong>：<ol>
+<li>0xE8是近址相对位移调用指令的操作码，后面四个字节是被调函数的相对于调用指令的下一条指令的偏移量。</li>
+<li><strong>重定位表</strong>：ELF文件中的重定位表保存与重定位相关的信息。对于可重定位的ELF文件来说，必须包含可重定位表。对于每个需要重定位的ELF段都有一个对应的重定位表，而一个重定位表往往也是一个ELF文件中的段。比如.text段里有需要重定位的地方，那么就会有一个相应的叫.rel.text的段保存了代码段的重定位表。</li>
+<li>每个要被重定位的地方叫做一个<strong>重定位入口</strong>。重定位入口的<strong>偏移</strong>表示该入口在被重定位的段中的位置。</li>
+</ol>
+</li>
+<li><strong>指令修正方式</strong>：绝对寻址修正和相对寻址修正的区别在于就是绝对寻址修正后的地址为符号的实际地址；相对寻址修正后的地址为符号距离被修正位置的地址差。<ol>
+<li><strong>绝对寻址修正</strong>：修正后的地址的计算方式为A+S（A为保存在被修正位置的值，S为符号的实际地址）。</li>
+<li><strong>相对寻址修正</strong>：修正后的地址计算方式为A+S-P（P为被修正的位置，即相对于段开始的偏移量或虚拟地址）。</li>
+</ol>
+</li>
+<li><strong>COMMON块</strong>：COMMON机制的原因是编译器和链接器允许不同类型的弱符号存在，最本质的原因还是链接器不支持符号类型。COMMON类型的链接规则是针对符号都是弱符号的情况。当有多个符号名相同的多个弱符号存在时，链接后的符号的大小为占空间最大的类型相同。</li>
+<li><strong>思考：在目标文件中，编译器为什么不直接将为初始化的全局变量，为它在BSS段分配空间，而是将其标记为COMMON类型的变量？</strong>：当弱符号存在多个文件中时，当编译器将每个文件编译成多个目标文件，弱符号在每个文件中的类型不相同时，锁占的空间也不相同，所以当编译器在编译单个模块时，无法知道最终弱符号所占空间的大小。所以编译器无法在BSS段为其分配空间。但是在链接过程中，链接器读取所有的输入目标文件后，每个弱符号的大小都可以确定，所以链接器在最终输出文件的BSS段为其分配空间。所以，总的来说，为初始化的全局变量还是放在BSS段。</li>
+<li><strong>ABI</strong>：（Application Binary Interface）是指符号修身标准、变量内存布局、函数调用方式等与可执行代码二进制兼容相关的内容。影响ABI的因素有很多，硬件、编程语言、编译器、链接器、操作系统等。</li>
+<li><strong>静态库</strong>：可以简单的看作是一组目标文件的集合。</li>
+<li><strong>BFD库</strong>：（Binary File Discriptor）是一个GNU项目，目的是希望通过统一的借口来处理不同格式目标文件格式。</li>
+</ol>
+<h2 id="第六章-可执行文件的装载与进程"><a href="#第六章-可执行文件的装载与进程" class="headerlink" title="第六章 可执行文件的装载与进程"></a>第六章 可执行文件的装载与进程</h2><ol>
+<li><strong>PAE</strong>：（Physical Address Extension）</li>
+<li><strong>动态装载</strong>：覆盖装入和页映射是两种典型的动态装载方法。都是利用了程序局部性原理。页映射的方式就是将内存和磁盘中的数据和指令按照“页”为单位进行划分，以后所有的装载和操作的单位都是页。</li>
+<li>在链接时，链接器会尽量把相同权限属性的段分配在同一空间。比如.text段的属性是可读可执行，.init段的属性也是可读可执行，在链接的时候就会将这两个section放在一起,组成一个“Segment”,一个“Segment”包含了一个或多个属性类似的“Section”。这样做的好处是可以有效的减少页面内部碎片。在ELF中把这些属性相似、又连在一起的“Section”叫做一个“Segment”，而系统正是按照“Segment”来映射可执行文件的。</li>
+<li>“Segment”和“Section”是从不同的角度来划分同一个ELF文件。从“Section”的角度来看ELF文件就是<strong>链接视图</strong>；从“Segment”角度来看是<strong>执行视图</strong>。在ELF装载时，“段”专门指“Segment”；在其他情况下，“段”指”Section“。<h2 id="第七章-动态链接"><a href="#第七章-动态链接" class="headerlink" title="第七章 动态链接"></a>第七章 动态链接</h2></li>
+<li>共享对象的最终装载地址在编译时是不确定的。而是在装载时，装载器根据当前地址空间的空闲情况，动态分配一块足够大小的虚拟地址空间给进程的共享对象。</li>
+<li><strong>实现共享对象任意地址装载</strong>：使用装载时重定位，而不是链接时重定位。即链接时，对所有绝对地址的引用不作重定位，而把这一步推迟到装载时进行。一旦共享模块装载地址确定，即目标地址确定，那么系统就对程序中所有的绝对地址的引用进行重定位。比如program1需要用到的共享对象libc.so。program1要用到libc.so中的foobar函数，且相对于代码段起始地址为0x100，当libc.so装载到0x10000000时，假设代码段位于模块的最开始处，则foobar函数的地址为0x10000100。此时系统将遍历重定位表，将所有对foobar的地址引用都重定位到0x10000100。</li>
+<li><strong>地址无关代码（PIC, Position-Independent Code）</strong>：装载时重定位无法解决共享对象指令中对绝对地址的重定位问题。地址无关代码技术是指将指令中那些需要被修改的部分分离出来，跟数据部分放在一起，这样就可以保证指令部分不变，数据部分在每个进程中都拥有一个副本。从而可以实现程序模块中共享的指令部分在装载时不需要因为装载地址的改变而改变。</li>
+<li><strong>延迟绑定</strong>：在函数第一次被用到时才进行绑定（符号查找、重定位等）。ELF使用PLT来实现。</li>
+<li>ELF将GOT分成了两个表，一个是.got，一个是.got.plt。.got用来保存全局变量引用的地址。.got.plt用来保存函数引用的地址。</li>
+<li><strong>.interp段</strong>：（interpreter， 解释器）。动态链接器的位置是由ELF文件的.interp段来指定的。ELF文件中的interp段保存了动态连接器的路径。</li>
+<li><strong>全局符号介入</strong>：一个共享对象里面的全局符号被另外一个共享对象的同名全局符号覆盖的现象被称为全局符号介入。Linux下的动态链接器规定，当一个符号加入全局符号表时，如果相同的符号已经存在，则后面加入的符号被忽略。</li>
+<li><strong>动态连接器本身是静态链接的</strong>，因为它不能依赖于其他共享对象，动态链接器本身是用来帮助其他ELF文件解决共享对象依赖问题的，如果自身也依赖共享对象，那谁来帮他解决共享对象依赖呢，就会进入一个死循环，所以它本身不依赖其他共享对象。</li>
+<li><strong>动态链接器本身是PIC的吗？</strong>：理论上说是不是PIC对动态链接器来说并不关键。但通常是PIC的，使用PIC会更加简单一些。</li>
+<li><strong>动态链接器和普通的共享对象的装载地址一样</strong>，没有什么区别，内核在装载它是会为其选择一个合适的装载地址。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2019/12/22/2019-12-22-《程序员的自我修养-链接、装载与库》-- 笔记/" title>https://v1ckydxp.github.io/archives/2019/12/22/2019-12-22-《程序员的自我修养-链接、装载与库》-- 笔记/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/03/2019-12-03-CVE-2017-11176漏洞复现/" rel="next" title="CVE-2017-11176 漏洞分析与复现">
+                <i class="fa fa-chevron-left"></i> CVE-2017-11176 漏洞分析与复现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">38</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.cnblogs.com/helica/" title="helica" target="_blank">helica</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://ama2in9.top/" title="ama2in9" target="_blank">ama2in9</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一章"><span class="nav-number">2.</span> <span class="nav-text">第一章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二章-编译和链接"><span class="nav-number">3.</span> <span class="nav-text">第二章 编译和链接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三章"><span class="nav-number">4.</span> <span class="nav-text">第三章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第四章-静态链接"><span class="nav-number">5.</span> <span class="nav-text">第四章 静态链接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第六章-可执行文件的装载与进程"><span class="nav-number">6.</span> <span class="nav-text">第六章 可执行文件的装载与进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第七章-动态链接"><span class="nav-number">7.</span> <span class="nav-text">第七章 动态链接</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">70.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

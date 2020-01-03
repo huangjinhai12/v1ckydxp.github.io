@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="v1cky&#39;blog">
 <meta property="og:description" content="前言前天晚上失眠的时候想到最近自己虽然看了很多篇的论文，但是感觉只是看了就看了。昨天和sc聊天，他说他每看完一篇论文都会在论文的最开头写上总结，然后思考一会儿，这真是个好习惯，学习学习。这里主要是整理下最近看的论文。 论文总结1. Automated Whitebox Fuzz Testing论文地址：Automated Whitebox Fuzz Testing 总体概述：这篇论文很早，是200">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-11-13T03:17:13.675Z">
+<meta property="og:updated_time" content="2019-11-18T13:25:36.736Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="FUZZ 论文总结（一）">
 <meta name="twitter:description" content="前言前天晚上失眠的时候想到最近自己虽然看了很多篇的论文，但是感觉只是看了就看了。昨天和sc聊天，他说他每看完一篇论文都会在论文的最开头写上总结，然后思考一会儿，这真是个好习惯，学习学习。这里主要是整理下最近看的论文。 论文总结1. Automated Whitebox Fuzz Testing论文地址：Automated Whitebox Fuzz Testing 总体概述：这篇论文很早，是200">
@@ -308,8 +308,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-11-13T11:17:13+08:00">
-                2019-11-13
+              <time title="Post modified" itemprop="dateModified" datetime="2019-11-18T21:25:36+08:00">
+                2019-11-18
               </time>
             
           </span>
@@ -363,7 +363,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  4k
+                  4.1k
                 </span>
               
 
@@ -402,7 +402,7 @@
       
         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前天晚上失眠的时候想到最近自己虽然看了很多篇的论文，但是感觉只是看了就看了。昨天和sc聊天，他说他每看完一篇论文都会在论文的最开头写上总结，然后思考一会儿，这真是个好习惯，学习学习。<br>这里主要是整理下最近看的论文。</p>
 <h2 id="论文总结"><a href="#论文总结" class="headerlink" title="论文总结"></a>论文总结</h2><h3 id="1-Automated-Whitebox-Fuzz-Testing"><a href="#1-Automated-Whitebox-Fuzz-Testing" class="headerlink" title="1. Automated Whitebox Fuzz Testing"></a>1. Automated Whitebox Fuzz Testing</h3><p><strong>论文地址</strong>：<a href="https://patricegodefroid.github.io/public_psfiles/ndss2008.pdf" target="_blank" rel="noopener">Automated Whitebox Fuzz Testing</a></p>
-<p><strong>总体概述</strong>：这篇论文很早，是2008年的。当时的研究现状是怎样让程序在测试的时候运行效率更高。采用的fuzzing策略都是向目标程序发送随机数据，但是这样的效率非常低，代码覆盖率也很低。这篇论文将符号执行结合进来，通过对程序运行时状态的分析，记录程序所走过的分支语句。在进行fuzzing过程中，通过上一步的分支选择，去指导修改测试样例，使程序下一次去执行另外一条分支，提高代码覆盖率。<br><strong>总结</strong>：。上面这个方法在理论上可以覆盖所有的代码，但是对于一些大型的程序，存在路径爆炸问题，所以做到覆盖到所有路径基本上是不可能的。还有就是符号执行的速度非常慢，fuzzing效率不高。并且上面的方法只有在有源码的情况下才可行，具有局限性。</p>
+<p><strong>总体概述</strong>：这篇论文很早，是2008年的。当时的研究现状是怎样让程序在测试的时候运行效率更高。采用的fuzzing策略都是向目标程序发送随机数据，但是这样的效率非常低，代码覆盖率也很低。这篇论文将符号执行结合进来，通过对程序运行时状态的分析，记录程序所走过的分支语句。在进行fuzzing过程中，通过上一步的分支选择，去指导修改测试样例，使程序下一次去执行另外一条分支，提高代码覆盖率。<br><strong>总结</strong>：上面这个方法在理论上可以覆盖所有的代码，但是对于一些大型的程序，存在路径爆炸问题，所以做到覆盖到所有路径基本上是不可能的。还有就是符号执行的速度非常慢，fuzzing效率不高。并且上面的方法只有在有源码的情况下才可行，具有局限性。</p>
 <h3 id="2-Taint-based-Directed-Whitebox-Fuzzing"><a href="#2-Taint-based-Directed-Whitebox-Fuzzing" class="headerlink" title="2. Taint-based Directed Whitebox Fuzzing"></a>2. Taint-based Directed Whitebox Fuzzing</h3><p><strong>论文地址</strong>：<a href="https://people.csail.mit.edu/rinard/paper/icse09.pdf" target="_blank" rel="noopener">Taint-based Directed Whitebox Fuzzing</a></p>
 <p><strong>总体概述</strong>：这篇论文将动态污点分析技术结合进来。该工具叫BuzzFuzz，它关注的不再是路径，而是输入数据，对于通常的fuzzing技术都是随机的变异输入数据的一些或全部字节。而BuzzFuzz通过动态污点分析，找到敏感点对应的输入数据，只对这些输入数据进步变异，可以提高fuzzing效率。<br>BuzzFuzz关注的是库函数入口点作为参数的函数和系统调用时所使用的寄存器和栈参数。首先执行一遍程序，分析出与所有函数入口点和系统调用相关的输入数据。最后FUZZ的时候只对这些字节进行变异，直到程序崩溃。<br><strong>总结</strong>：BuzzFuzz也是只能对有源码的程序进行fuzzing测试，现在很多程序都是没有源码的，所以也是使用的范围比较小。还有就是一些大型的程序，会调用很多的库函数，那么就会有很多地方会被标记为敏感点，也会有很多的输入数据与敏感点对应的，这样其实也不能很好提高触发漏洞的效率。</p>
 <h3 id="3-TaintScope-A-Checksum-Aware-Directed-Fuzzing-Tool-for-Automatic-Software-Vulnerability-Detection"><a href="#3-TaintScope-A-Checksum-Aware-Directed-Fuzzing-Tool-for-Automatic-Software-Vulnerability-Detection" class="headerlink" title="3. TaintScope: A Checksum-Aware Directed Fuzzing Tool for Automatic Software Vulnerability Detection"></a>3. TaintScope: A Checksum-Aware Directed Fuzzing Tool for Automatic Software Vulnerability Detection</h3><p><strong>论文地址</strong>：<a href="https://ieeexplore.ieee.org/document/5504701" target="_blank" rel="noopener">TaintScope: A Checksum-Aware Directed Fuzzing Tool for Automatic Software Vulnerability Detection</a></p>
@@ -424,7 +424,7 @@
 <p><strong>总体概述</strong>：这篇论文针对现在规范的文件格式越发复杂，如pdf文件可能存在多个节，每个节又可能存在多种格式，现有的规定格式样例生成无法满足条件。提出了使用RNN网络训练seq2seq模型，生成合法的PDF文件用于模糊测试。</p>
 <h3 id="9-Skyﬁre-Data-Driven-Seed-Generation-for-Fuzzing"><a href="#9-Skyﬁre-Data-Driven-Seed-Generation-for-Fuzzing" class="headerlink" title="9. Skyﬁre: Data-Driven Seed Generation for Fuzzing"></a>9. Skyﬁre: Data-Driven Seed Generation for Fuzzing</h3><p><strong>论文地址</strong>：<a href="https://www.ieee-security.org/TC/SP2017/papers/42.pdf" target="_blank" rel="noopener">Skyﬁre: Data-Driven Seed Generation for Fuzzing</a></p>
 <p><strong>总体概述</strong>：这篇论文中，提出了一种新的数据驱动种子生成方法，称为Skyfire，该方法利用大量现有样本中的知识为处理高度结构化输入的模糊程序生成分布良好的种子输入。Skyfire将语料库和语法作为输入，包括两个步骤。 Skyfire的第一步是根据语法将收集的样本（即语料库）解析为抽象语法树（AST），并学习PCSG(probabilistic context-sensitive grammar,一种基于概率的上下文相关语法)。然后第二步，利用学习到的PCSG生成种子输入。</p>
-<p><strong>总结</strong>:在测试高度结构化输入的程序时，提高测试样例的质量，可以很好提高代码覆盖率，当然能更好的发现漏洞。在进行变异的时候只对抽象语法树的叶子节点进行随机变异，这样保证了生成的测试样例的合法性，在一定程度上会提高代码覆盖率。</p>
+<p><strong>总结</strong>:在测试高度结构化输入的程序时，提高测试样例的质量，可以很好提高代码覆盖率，当然能更好的发现漏洞。在进行变异的时候只对抽象语法树的叶子节点进行随机变异，这样保证了生成的测试样例的合法性，在一定程度上会提高代码覆盖率。实验表明，Skyfire生成的测试用例比AFL生成的用例覆盖更多的代码，并且发现了更多的bug。 这项工作还证明，测试用例的质量是影响模糊测试效率和有效性的重要因素。</p>
 <h3 id="10-A-systematic-review-of-fuzzing-based-on-machine-learning-techniques"><a href="#10-A-systematic-review-of-fuzzing-based-on-machine-learning-techniques" class="headerlink" title="10. A systematic review of fuzzing based on machine learning techniques"></a>10. A systematic review of fuzzing based on machine learning techniques</h3><p><strong>论文地址</strong>:<a href="https://arxiv.org/pdf/1908.01262.pdf" target="_blank" rel="noopener">A systematic review of fuzzing based on machine learning techniques</a></p>
 <p><strong>总体概述</strong>: 这篇论文主要回顾了近年来使用机器学习技术进行模糊测试的研究进展，分析了机器学习如何改善模糊过程和结果，并为将来的fuzzing提供了一些启示。与传统模糊测试模型和基于机器学习的模糊测试模型相比，后者确实能提高测试的效率和性能，但仍然存在一些局限性和缺陷。</p>
 <p><strong>总结</strong>：这篇论文主要是对当前的用于模糊测试的机器算法的各个工作性能进行比较，并且系统的总结了一些模糊测试中使用的机器学习的知识。看完对基于机器学习的模糊测试有了一个全面系统的了解。</p>
@@ -484,8 +484,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/11/09/2019-10-04-Linux内核页面分配/" rel="next" title="Linux 内核物理页面内存分配">
-                <i class="fa fa-chevron-left"></i> Linux 内核物理页面内存分配
+              <a href="/2019/11/09/AFL-fuzz-入门&源码分析/" rel="next" title="AFL fuzz 入门 & 源码分析">
+                <i class="fa fa-chevron-left"></i> AFL fuzz 入门 & 源码分析
               </a>
             
           </div>
@@ -493,6 +493,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/03/2019-12-03-CVE-2017-11176漏洞复现/" rel="prev" title="CVE-2017-11176 漏洞分析与复现">
+                CVE-2017-11176 漏洞分析与复现 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -570,7 +574,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -679,7 +683,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -693,7 +697,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">64.1k</span>
+    <span title="Site words total count">70.7k</span>
   
 </div>
 

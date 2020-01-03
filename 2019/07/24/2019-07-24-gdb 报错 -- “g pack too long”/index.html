@@ -88,7 +88,7 @@
 <meta property="og:description" content="0x00 前言今天在调内核的时候想换个gdb插件，原来用的pwndbg没出什么问题。但前段时间在docker上调pwn题用的都是pwngdb，个人感觉后者更好用一点，所以也想把虚拟机也换成pwngdb，然后就报错了。 0x01 gdb报错“remote ‘g’ packet reply is too long: d07eac81fff”在网上搜了一下，找到了下面的解决方案，但是很神奇的是，我在等待">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15639610488018.jpg">
-<meta property="og:updated_time" content="2019-07-24T09:43:01.572Z">
+<meta property="og:updated_time" content="2019-11-25T12:44:45.243Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="gdb调试报错 -- g pack too long">
 <meta name="twitter:description" content="0x00 前言今天在调内核的时候想换个gdb插件，原来用的pwndbg没出什么问题。但前段时间在docker上调pwn题用的都是pwngdb，个人感觉后者更好用一点，所以也想把虚拟机也换成pwngdb，然后就报错了。 0x01 gdb报错“remote ‘g’ packet reply is too long: d07eac81fff”在网上搜了一下，找到了下面的解决方案，但是很神奇的是，我在等待">
@@ -310,8 +310,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-07-24T17:43:01+08:00">
-                2019-07-24
+              <time title="Post modified" itemprop="dateModified" datetime="2019-11-25T20:44:45+08:00">
+                2019-11-25
               </time>
             
           </span>
@@ -365,7 +365,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  199
+                  212
                 </span>
               
 
@@ -404,7 +404,9 @@
       
         <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>今天在调内核的时候想换个gdb插件，原来用的pwndbg没出什么问题。但前段时间在docker上调pwn题用的都是pwngdb，个人感觉后者更好用一点，所以也想把虚拟机也换成pwngdb，然后就报错了。</p>
 <h2 id="0x01-gdb报错“remote-‘g’-packet-reply-is-too-long-d07eac81fff”"><a href="#0x01-gdb报错“remote-‘g’-packet-reply-is-too-long-d07eac81fff”" class="headerlink" title="0x01 gdb报错“remote ‘g’ packet reply is too long: d07eac81fff”"></a>0x01 gdb报错“remote ‘g’ packet reply is too long: d07eac81fff”</h2><p>在网上搜了一下，找到了下面的解决方案，但是很神奇的是，我在等待源码下载的过程中，重新试了一下，发现它自己好了，无解。但是源码都下好了，就还是折腾到底好了。</p>
-<h3 id="a-解决方法："><a href="#a-解决方法：" class="headerlink" title="a. 解决方法："></a>a. 解决方法：</h3><p>在<a href="http://www.gnu.org/software/gdb/" target="_blank" rel="noopener">gdb 8.3</a> 上找到最新的8.3版本下载<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ./configure --prefix=/usr</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure></p>
+<h3 id="a-解决方法："><a href="#a-解决方法：" class="headerlink" title="a. 解决方法："></a>a. 解决方法：</h3><p>方法一：在<a href="http://www.gnu.org/software/gdb/" target="_blank" rel="noopener">gdb 8.3</a> 上找到最新的8.3版本下载<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ./configure --prefix=/usr</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure></p>
+<p>方法二：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ <span class="built_in">set</span> arch i386:x86<span class="number">-64</span></span><br></pre></td></tr></table></figure>
 <h3 id="b-报错makeinfo-is-missing-on-your-system"><a href="#b-报错makeinfo-is-missing-on-your-system" class="headerlink" title="b. 报错makeinfo is missing on your system"></a>b. 报错<code>makeinfo is missing on your system</code></h3><p>解决方法</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install texinfo</span><br></pre></td></tr></table></figure>
 <p><img src="/images/15639610488018.jpg" alt="-w1344"></p>
@@ -546,7 +548,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -655,7 +657,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -669,7 +671,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">64.1k</span>
+    <span title="Site words total count">70.7k</span>
   
 </div>
 

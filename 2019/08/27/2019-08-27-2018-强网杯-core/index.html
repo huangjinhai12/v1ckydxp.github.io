@@ -79,13 +79,13 @@
 
 
 
-<meta name="description" content="0x00 前言放假+摸鱼。。。。 0x01 题目基本信息题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。bzImage是镜像文件core.cpio：这是一个打包后的文件，里面包含文件系统，其中vmlinux文件是内核的二进制文件，相当于pwn题中的libc。start.sh：是启动脚本。修改start.sh文件中的64M为128M。 12345678q">
+<meta name="description" content="0x00 前言放假+摸鱼。。。。 0x01 题目基本信息题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。bzImage是镜像文件,解压bzImage可以获取vmlinux,使用Ropper获取gadget。 123sudo apt-get install linux-headers-$(uname -r)sudo /usr/src/linux-head">
 <meta name="keywords" content="linux kernel pwn">
 <meta property="og:type" content="article">
 <meta property="og:title" content="2018 强网杯 CORE writeup 学习笔记">
 <meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/08/27/2019-08-27-2018-强网杯-core/index.html">
 <meta property="og:site_name" content="v1cky&#39;blog">
-<meta property="og:description" content="0x00 前言放假+摸鱼。。。。 0x01 题目基本信息题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。bzImage是镜像文件core.cpio：这是一个打包后的文件，里面包含文件系统，其中vmlinux文件是内核的二进制文件，相当于pwn题中的libc。start.sh：是启动脚本。修改start.sh文件中的64M为128M。 12345678q">
+<meta property="og:description" content="0x00 前言放假+摸鱼。。。。 0x01 题目基本信息题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。bzImage是镜像文件,解压bzImage可以获取vmlinux,使用Ropper获取gadget。 123sudo apt-get install linux-headers-$(uname -r)sudo /usr/src/linux-head">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15668899244579.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15668899460404.jpg">
@@ -96,10 +96,10 @@
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15668906455435.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15668908041755.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15668911170888.jpg">
-<meta property="og:updated_time" content="2019-09-07T03:00:57.325Z">
+<meta property="og:updated_time" content="2019-12-06T01:15:32.820Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="2018 强网杯 CORE writeup 学习笔记">
-<meta name="twitter:description" content="0x00 前言放假+摸鱼。。。。 0x01 题目基本信息题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。bzImage是镜像文件core.cpio：这是一个打包后的文件，里面包含文件系统，其中vmlinux文件是内核的二进制文件，相当于pwn题中的libc。start.sh：是启动脚本。修改start.sh文件中的64M为128M。 12345678q">
+<meta name="twitter:description" content="0x00 前言放假+摸鱼。。。。 0x01 题目基本信息题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。bzImage是镜像文件,解压bzImage可以获取vmlinux,使用Ropper获取gadget。 123sudo apt-get install linux-headers-$(uname -r)sudo /usr/src/linux-head">
 <meta name="twitter:image" content="https://v1ckydxp.github.io/images/15668899244579.jpg">
 
 
@@ -318,8 +318,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-09-07T11:00:57+08:00">
-                2019-09-07
+              <time title="Post modified" itemprop="dateModified" datetime="2019-12-06T09:15:32+08:00">
+                2019-12-06
               </time>
             
           </span>
@@ -411,7 +411,9 @@
 
       
         <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>放假+摸鱼。。。。</p>
-<h2 id="0x01-题目基本信息"><a href="#0x01-题目基本信息" class="headerlink" title="0x01 题目基本信息"></a>0x01 题目基本信息</h2><p>题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。<br>bzImage是镜像文件<br>core.cpio：这是一个打包后的文件，里面包含文件系统，其中vmlinux文件是内核的二进制文件，相当于pwn题中的libc。<br>start.sh：是启动脚本。<br>修改start.sh文件中的64M为128M。</p>
+<h2 id="0x01-题目基本信息"><a href="#0x01-题目基本信息" class="headerlink" title="0x01 题目基本信息"></a>0x01 题目基本信息</h2><p>题目解压出来有4个文件：bzImage、core.cpio、start.sh、vmlinux。<br>bzImage是镜像文件,解压bzImage可以获取vmlinux,使用Ropper获取gadget。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install linux-headers-$(uname -r)</span><br><span class="line">sudo /usr/src/linux-headers-$(uname -r)/scripts/extract-vmlinux bzImage &gt; vmlinux</span><br><span class="line">Ropper.py --file vmlinux --nocolor &gt; gadget</span><br></pre></td></tr></table></figure>
+<p>core.cpio：这是一个打包后的文件，里面包含文件系统，其中vmlinux文件是内核的二进制文件，相当于pwn题中的libc。<br>start.sh：是启动脚本。<br>修改start.sh文件中的64M为128M。</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-x86_64 \</span><br><span class="line">-m 128M \</span><br><span class="line">-kernel ./bzImage \</span><br><span class="line">-initrd  ./core.cpio \</span><br><span class="line">-append <span class="string">"root=/dev/ram rw console=ttyS0 oops=panic panic=1 quiet kaslr"</span> \</span><br><span class="line">-s  \</span><br><span class="line">-netdev user,id=t0, -device e1000,netdev=t0,id=nic0 \</span><br><span class="line">-nographic  \</span><br></pre></td></tr></table></figure>
 <p>可以看到开启了kaslr保护。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">```</span><br><span class="line">解压core.cpio。</span><br><span class="line"></span><br><span class="line">```sh</span><br><span class="line">$ mkdir core</span><br><span class="line">$ cd core</span><br><span class="line">$ mv ../core.cpio core.cpio.gz</span><br><span class="line">$ gunzip ./core.cpio.gz</span><br><span class="line">$ cpio -idmv &lt; ./core.cpio</span><br></pre></td></tr></table></figure></p>
 <p>可以看到有如下这些文件：</p>
@@ -598,7 +600,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -707,7 +709,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -721,7 +723,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">64.1k</span>
+    <span title="Site words total count">70.7k</span>
   
 </div>
 

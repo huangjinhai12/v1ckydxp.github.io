@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="linux-kernel 页面分配,">
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
@@ -79,23 +79,22 @@
 
 
 
-<meta name="description" content="0x00 前言之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面东西还有好多，等之后再找时间补上。 0x01 UMA和NUMA模型1.1 UMA模型一致存储器访问（Uniform-Memory-Access，简称UMA）模型，一致性意指无论在什么时候，处理器只能为内存的每个">
-<meta name="keywords" content="linux-kernel 页面分配">
+<meta name="description" content="--- title:  Linux 内核物理页面内存分配 date: 2019/11/9 tags:  - linux-kernel 页面分配 categories:   - linux-kernel --- 0x00 前言之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Linux 内核物理页面内存分配">
-<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/11/09/2019-10-04-Linux内核页面分配/index.html">
+<meta property="og:title" content="v1cky&#39;blog">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2019/10/04/2019-10-04-Linux内核页面分配/index.html">
 <meta property="og:site_name" content="v1cky&#39;blog">
-<meta property="og:description" content="0x00 前言之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面东西还有好多，等之后再找时间补上。 0x01 UMA和NUMA模型1.1 UMA模型一致存储器访问（Uniform-Memory-Access，简称UMA）模型，一致性意指无论在什么时候，处理器只能为内存的每个">
+<meta property="og:description" content="--- title:  Linux 内核物理页面内存分配 date: 2019/11/9 tags:  - linux-kernel 页面分配 categories:   - linux-kernel --- 0x00 前言之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15701545708730.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15701566481647.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15701572975167.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15702468118000.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15702632405644.jpg">
-<meta property="og:updated_time" content="2019-11-09T13:27:47.013Z">
+<meta property="og:updated_time" content="2019-11-14T13:36:34.120Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Linux 内核物理页面内存分配">
-<meta name="twitter:description" content="0x00 前言之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面东西还有好多，等之后再找时间补上。 0x01 UMA和NUMA模型1.1 UMA模型一致存储器访问（Uniform-Memory-Access，简称UMA）模型，一致性意指无论在什么时候，处理器只能为内存的每个">
+<meta name="twitter:title" content="v1cky&#39;blog">
+<meta name="twitter:description" content="--- title:  Linux 内核物理页面内存分配 date: 2019/11/9 tags:  - linux-kernel 页面分配 categories:   - linux-kernel --- 0x00 前言之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面">
 <meta name="twitter:image" content="https://v1ckydxp.github.io/images/15701545708730.jpg">
 
 
@@ -126,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/11/09/2019-10-04-Linux内核页面分配/">
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2019/10/04/2019-10-04-Linux内核页面分配/">
 
 
 
 
 
-  <title>Linux 内核物理页面内存分配 | v1cky'blog</title>
+  <title> | v1cky'blog</title>
   
 
 
@@ -269,7 +268,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/11/09/2019-10-04-Linux内核页面分配/">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2019/10/04/2019-10-04-Linux内核页面分配/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="v1cky01dxp">
@@ -286,7 +285,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Linux 内核物理页面内存分配</h1>
+          <h1 class="post-title" itemprop="name headline"></h1>
         
 
         <div class="post-meta">
@@ -298,8 +297,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-09T00:00:00+08:00">
-                2019-11-09
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-10-04T08:38:49+08:00">
+                2019-10-04
               </time>
             
 
@@ -314,34 +313,12 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-11-09T21:27:47+08:00">
-                2019-11-09
+              <time title="Post modified" itemprop="dateModified" datetime="2019-11-14T21:36:34+08:00">
+                2019-11-14
               </time>
             
           </span>
 
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux-kernel/" itemprop="url" rel="index">
-                    <span itemprop="name">linux-kernel</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -369,7 +346,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  6.7k
+                  6.8k
                 </span>
               
 
@@ -406,7 +383,15 @@
       
 
       
-        <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。<br>以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面东西还有好多，等之后再找时间补上。</p>
+        <pre><code>---
+title:  Linux 内核物理页面内存分配
+date: 2019/11/9
+tags:
+ - linux-kernel 页面分配
+categories: 
+ - linux-kernel
+---
+</code></pre><h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>之前分析一个Linux内核的洞，需要对内存分配这块比较熟悉，这篇文章之前的学习笔记整理。<br>以下所有的源码分析基于linux-4.20-rc3。这篇文件断断续续写了快一个月，这里面东西还有好多，等之后再找时间补上。</p>
 <h2 id="0x01-UMA和NUMA模型"><a href="#0x01-UMA和NUMA模型" class="headerlink" title="0x01 UMA和NUMA模型"></a>0x01 UMA和NUMA模型</h2><h3 id="1-1-UMA模型"><a href="#1-1-UMA模型" class="headerlink" title="1.1 UMA模型"></a>1.1 UMA模型</h3><p>一致存储器访问（Uniform-Memory-Access，简称UMA）模型，一致性意指无论在什么时候，处理器只能为内存的每个数据保持或共享唯一一个数值。物理存储器备所有处理器均匀共享。所有处理对所有存储内存有相同的访问时间。在Linux中，在这种模式下还是使用节点，但是时一个单独的节点，它包含了系统中的所有物理内存。</p>
 <h3 id="1-2-NUMA模型"><a href="#1-2-NUMA模型" class="headerlink" title="1.2 NUMA模型"></a>1.2 NUMA模型</h3><p>非一致存储器访问（Nonuniform-Memory-Access，简称NUMA）模型，是一种分布式存储器访问方式，处理器可以同时访问不同的存储器地址。NUMA总是多处理器计算机,在这种模式下，给定CPU对不同的内存单元的访问时间可能不一样。</p>
 <div align="center"> <img src="/images/15701545708730.jpg" alt="-w590"></div>
@@ -586,7 +571,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link:</strong>
-    <a href="https://v1ckydxp.github.io/archives/2019/11/09/2019-10-04-Linux内核页面分配/" title="Linux 内核物理页面内存分配">https://v1ckydxp.github.io/archives/2019/11/09/2019-10-04-Linux内核页面分配/</a>
+    <a href="https://v1ckydxp.github.io/archives/2019/10/04/2019-10-04-Linux内核页面分配/" title>https://v1ckydxp.github.io/archives/2019/10/04/2019-10-04-Linux内核页面分配/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice: </strong>
@@ -599,12 +584,6 @@
 
     <footer class="post-footer">
       
-        <div class="post-tags">
-          
-            <a href="/tags/linux-kernel-页面分配/" rel="tag"># linux-kernel 页面分配</a>
-          
-        </div>
-      
 
       
       
@@ -614,8 +593,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/11/09/AFL-fuzz-入门&源码分析/" rel="next" title="AFL fuzz 入门 & 源码分析">
-                <i class="fa fa-chevron-left"></i> AFL fuzz 入门 & 源码分析
+              <a href="/2019/09/10/2019-09-10-CVE-2018-18281-Linux kernel TLB漏洞/" rel="next" title="CVE-2018-18281 漏洞分析与复现">
+                <i class="fa fa-chevron-left"></i> CVE-2018-18281 漏洞分析与复现
               </a>
             
           </div>
@@ -624,8 +603,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/11/10/2019-11-10-fuzz论文总结（一）/" rel="prev" title="FUZZ 论文总结（一）">
-                FUZZ 论文总结（一） <i class="fa fa-chevron-right"></i>
+              <a href="/2019/11/09/AFL-fuzz-入门&源码分析/" rel="prev" title="AFL fuzz 入门 & 源码分析">
+                AFL fuzz 入门 & 源码分析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -704,7 +683,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -813,7 +792,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -827,7 +806,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">64.1k</span>
+    <span title="Site words total count">70.7k</span>
   
 </div>
 
