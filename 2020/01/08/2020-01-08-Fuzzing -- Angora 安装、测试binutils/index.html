@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Angora fuzz,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="0x00 前言目前模糊测试面临的一大难题就是覆盖率低，目前已经有的解决方案是用符号执行去解约束，但是符号执行解约束效率非常低，并且存在路径爆炸的问题。Angora提出了一种不用符号执行就可以解约束的方法。在paper中，其性能与AFL相比有较大的优势。几个月前就想说把这个工具跑下试试，拖到现在。。。。 0x01 Angora 环境配置、配置1.1 下载源码、安装rust首先该工具已经在github">
+<meta name="keywords" content="Angora fuzz">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fuzzing -- Angora 安装、测试binutils-2.28">
+<meta property="og:url" content="https://v1ckydxp.github.io/archives/2020/01/08/2020-01-08-Fuzzing -- Angora 安装、测试binutils/index.html">
+<meta property="og:site_name" content="v1cky&#39;blog">
+<meta property="og:description" content="0x00 前言目前模糊测试面临的一大难题就是覆盖率低，目前已经有的解决方案是用符号执行去解约束，但是符号执行解约束效率非常低，并且存在路径爆炸的问题。Angora提出了一种不用符号执行就可以解约束的方法。在paper中，其性能与AFL相比有较大的优势。几个月前就想说把这个工具跑下试试，拖到现在。。。。 0x01 Angora 环境配置、配置1.1 下载源码、安装rust首先该工具已经在github">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/15784033001181.jpg">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/15784037879010.jpg">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/15784038540461.jpg">
+<meta property="og:image" content="https://v1ckydxp.github.io/images/15784587721545.jpg">
+<meta property="og:updated_time" content="2020-03-14T01:50:25.261Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fuzzing -- Angora 安装、测试binutils-2.28">
+<meta name="twitter:description" content="0x00 前言目前模糊测试面临的一大难题就是覆盖率低，目前已经有的解决方案是用符号执行去解约束，但是符号执行解约束效率非常低，并且存在路径爆炸的问题。Angora提出了一种不用符号执行就可以解约束的方法。在paper中，其性能与AFL相比有较大的优势。几个月前就想说把这个工具跑下试试，拖到现在。。。。 0x01 Angora 环境配置、配置1.1 下载源码、安装rust首先该工具已经在github">
+<meta name="twitter:image" content="https://v1ckydxp.github.io/images/15784033001181.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://v1ckydxp.github.io/archives/2020/01/08/2020-01-08-Fuzzing -- Angora 安装、测试binutils/">
+
+
+
+
+
+  <title>Fuzzing -- Angora 安装、测试binutils-2.28 | v1cky'blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">v1cky'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">few words,many deeds!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://v1ckydxp.github.io/archives/2020/01/08/2020-01-08-Fuzzing -- Angora 安装、测试binutils/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="v1cky01dxp">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="v1cky'blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Fuzzing -- Angora 安装、测试binutils-2.28</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-01-08T00:00:00+08:00">
+                2020-01-08
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Post modified&#58;</span>
+              
+              <time title="Post modified" itemprop="dateModified" datetime="2020-03-14T09:50:25+08:00">
+                2020-03-14
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/fuzz/" itemprop="url" rel="index">
+                    <span itemprop="name">fuzz</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>目前模糊测试面临的一大难题就是覆盖率低，目前已经有的解决方案是用符号执行去解约束，但是符号执行解约束效率非常低，并且存在路径爆炸的问题。Angora提出了一种不用符号执行就可以解约束的方法。在paper中，其性能与AFL相比有较大的优势。几个月前就想说把这个工具跑下试试，拖到现在。。。。</p>
+<h2 id="0x01-Angora-环境配置、配置"><a href="#0x01-Angora-环境配置、配置" class="headerlink" title="0x01 Angora 环境配置、配置"></a>0x01 Angora 环境配置、配置</h2><h3 id="1-1-下载源码、安装rust"><a href="#1-1-下载源码、安装rust" class="headerlink" title="1.1 下载源码、安装rust"></a>1.1 下载源码、安装rust</h3><p>首先该工具已经在github上开源，直接下载源码。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> git@github.com:AngoraFuzzer/Angora.git</span><br></pre></td></tr></table></figure>
+<p>Angora需要在Linux-amd64环境下。同时需要rust、llvm4.0.0-7.1.0的支持。<br>安装rust：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl --proto <span class="string">'=https'</span> --tlsv1.2 -sSf https://sh.rustup.rs | sh</span><br></pre></td></tr></table></figure>
+<h3 id="1-2-安装LLVM"><a href="#1-2-安装LLVM" class="headerlink" title="1.2 安装LLVM"></a>1.2 安装LLVM</h3><h4 id="1-2-1-通过Angora中的自动化脚本安装"><a href="#1-2-1-通过Angora中的自动化脚本安装" class="headerlink" title="1.2.1 通过Angora中的自动化脚本安装"></a>1.2.1 通过Angora中的自动化脚本安装</h4><p>Angora的源码的build目录下，有安装LLVM-7.0.0的脚本<code>install_llvm.sh</code>。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#/home/parallels/Desktop/Angora</span></span><br><span class="line">$ PREFIX=/home/parallels/llvm  ./build/install_llvm.sh</span><br></pre></td></tr></table></figure>
+<p><code>/home/parallels/llvm</code>路径是LLVM的安装路径，自己设定。一定要在<code>Angora</code>目录下运行<code>build</code>目录的脚本，不然后面的脚本中的路径会不对，导致报错<br>其实最简单的方法是直接在编译<code>Angora</code>的时候运行<code>./build/build.sh</code>，该脚本会自动的下载安装<code>LLVM</code>。这张方法比较方便，只是要等一会，下载<code>clang+llvm</code>的时候会很慢。</p>
+<p>由于要学编写<code>LLVM</code>的<code>pass</code>，所以需要搭建<code>LLVM</code>的整个源码环境，尝试了把脚本中的自动下载<code>clang+llvm</code>的代码注释掉，手动安装<code>LLVM</code>。</p>
+<h4 id="1-2-2-手动源码编译LLVM-7-1-0"><a href="#1-2-2-手动源码编译LLVM-7-1-0" class="headerlink" title="1.2.2 手动源码编译LLVM-7.1.0"></a>1.2.2 手动源码编译LLVM-7.1.0</h4><p>具体的编译步骤在之前的一篇里面写了就不写了。</p>
+<h5 id="1-2-2-1-配置环境变量"><a href="#1-2-2-1-配置环境变量" class="headerlink" title="1.2.2.1  配置环境变量"></a>1.2.2.1  配置环境变量</h5><p>我的LLVM-7.1.0安装目录在/llvm，设置环境变量。<br>将下面两行代码添加到.bashrc获取.zshrc。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> PATH=/llvm/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=/llvm/lib:<span class="variable">$LD_LIBRARY_PATH</span></span><br></pre></td></tr></table></figure>
+<p>然后在命令行输入下面的命令，使得上面的修改生效。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
+<p>然后将Angora/build目录下的build.sh脚本中的下面几行注释掉。<img src="/images/15784033001181.jpg" alt="15784033001181"></p>
+<h3 id="1-3-编译Angora"><a href="#1-3-编译Angora" class="headerlink" title="1.3 编译Angora"></a>1.3 编译Angora</h3><p>直接在Angora目录下运行下面的命令。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./build/build.sh</span><br></pre></td></tr></table></figure>
+<p>如果报错cmake not found，直接sudo apt install cmake就好了。还遇到一个问题是我之前编译内核的时候把gcc版本换成了gcc4，会导致报错，将gcc换回gcc5就可以。<br>上述运行没有报错，说明Angora编译安装成功。</p>
+<h4 id="1-3-1-系统配置"><a href="#1-3-1-系统配置" class="headerlink" title="1.3.1 系统配置"></a>1.3.1 系统配置</h4><p>和AFL一样，系统的core dump需要被disable。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> core | sudo tee /proc/sys/kernel/core_pattern</span><br></pre></td></tr></table></figure>
+<h4 id="1-3-2-运行测试样例"><a href="#1-3-2-运行测试样例" class="headerlink" title="1.3.2 运行测试样例"></a>1.3.2 运行测试样例</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#Angora目录</span><br><span class="line">$ cd tests</span><br><span class="line">$ ./test.sh mini</span><br></pre></td></tr></table></figure>
+<p><img src="/images/15784037879010.jpg" alt="15784037879010"><br><img src="/images/15784038540461.jpg" alt="15784038540461"></p>
+<h2 id="0x02-Angora测试binutils-2-28"><a href="#0x02-Angora测试binutils-2-28" class="headerlink" title="0x02 Angora测试binutils-2.28"></a>0x02 Angora测试binutils-2.28</h2><h3 id="2-1-编译binutils-2-28"><a href="#2-1-编译binutils-2-28" class="headerlink" title="2.1 编译binutils-2.28"></a>2.1 编译binutils-2.28</h3><p>binutils-2.28文件目录下有configure文件，采用Angora官方文档中的autoconf方法来编译目标程序。Angora需要有taint tracking支持的目标程序和light instrumentation支持的目标程序。所以需要分别两次编译生成.taint目标程序和.fast目标程序。</p>
+<p>设置参数，然后在命令行输入如下命令，生成Makefile。一定不要忘了后面的–disable-shared，不然会编译报错。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ CC=/home/parallels/Desktop/Angora/bin/angora-clang \</span><br><span class="line">CXX=/home/parallels/Desktop/Angora/bin/angora-clang++ \</span><br><span class="line">LD=/home/parallels/Desktop/Angora/bin/angora-clang \</span><br><span class="line">./configure --disable-shared</span><br></pre></td></tr></table></figure>
+<p><strong>编译Fast Mode的目标程序</strong><br>然后直接编译，默认情况下是Fast Mode.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make # Fast Mode</span><br></pre></td></tr></table></figure></p>
+<p>在binutils-2.28目录外新建一个angora-binutils目录，然后在该目录下，新建taint目录和fast目录。我是拿binutils-2.28中的readelf程序来试验的，将编译好的readelf可执行文件移到angora-binutils/fast目录下，并命名为readelf.fast。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cd ..</span><br><span class="line">$ mkdir angora-binutils</span><br><span class="line">$ cd angora-binutils</span><br><span class="line">$ mkdir fast taint</span><br><span class="line">$ cp ../binutils-2.28/binutils/readelf fast/readelf.fast</span><br></pre></td></tr></table></figure>
+<p><strong>编译Taint Mode支持的目标程序</strong><br>编译有taint tracking支持的程序。首先先清除之前的编译结果，最简单粗暴的做法是将当前文件夹删除，然后重新解压，因为只是make clean不能清理干净，还要删除一些缓存文件，两种方法都可以，还是喜欢简单粗暴的做法。设置USE_TRACK=1标识。(编译taint模式会比较慢）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#方法一</span><br><span class="line">$ make clean</span><br><span class="line">$ rm config.status</span><br><span class="line">$ CC=/home/parallels/Desktop/Angora/bin/angora-clang CXX=/home/parallels/Desktop/Angora/bin/angora-clang++ LD=/home/parallels/Desktop/Angora/bin/angora-clang ./configure --disable-shared</span><br><span class="line">$ USE_TRACK=1 make</span><br><span class="line"># 方法二</span><br><span class="line">$ tar zxvf </span><br><span class="line">$ cd bi</span><br><span class="line">$ CC=/home/parallels/Desktop/Angora/bin/angora-clang CXX=/home/parallels/Desktop/Angora/bin/angora-clang++ LD=/home/parallels/Desktop/Angora/bin/angora-clang ./configure --disable-shared</span><br><span class="line">$ USE_TRACK=1 make</span><br><span class="line">------------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line">$ cp binutils/readelf ../angora-binutils/taint/readelf.taint</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-Fuzzing-readelf"><a href="#2-2-Fuzzing-readelf" class="headerlink" title="2.2 Fuzzing readelf"></a>2.2 Fuzzing readelf</h3><p>新建input文件夹，用于存放输入种子文件。种子文件不能太大，否则会被丢弃。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./../../../Angora/angora_fuzzer -i input/ -o output/ -t taint/readelf.taint -- fast/readelf.fast -a</span><br></pre></td></tr></table></figure>
+<ol>
+<li>-i后面跟的是种子目录，存放的是种子文件。</li>
+<li>-o后面跟的fuzzing结果存放的目录，output文件在fuzzing时会自动创建，如果已经存在会报错。</li>
+<li>-t后面跟的是支持taint tracking的目标程序，也就是.taint后缀文件的存放路径。</li>
+<li>–后面跟的是支持light instrumentation的目标程序，也就是.fast后缀文件的存放路径。</li>
+</ol>
+<p>最终运行截图：<img src="/images/15784587721545.jpg" alt="15784587721545"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    v1cky01dxp
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://v1ckydxp.github.io/archives/2020/01/08/2020-01-08-Fuzzing -- Angora 安装、测试binutils/" title="Fuzzing -- Angora 安装、测试binutils-2.28">https://v1ckydxp.github.io/archives/2020/01/08/2020-01-08-Fuzzing -- Angora 安装、测试binutils/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://v1ckydxp.github.io" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Angora-fuzz/" rel="tag"># Angora fuzz</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/01/07/2020-01-07-llvm clang 源码搭建/" rel="next" title="LLVM Clang 源码环境搭建">
+                <i class="fa fa-chevron-left"></i> LLVM Clang 源码环境搭建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/01/27/2020-02-27-leetcode 探索初级算法/" rel="prev" title="leetcode - 探索初级算法">
+                leetcode - 探索初级算法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">v1cky01dxp</p>
+	      <img class="site-author-image" itemprop="image" src="/images/head.jpeg" alt="v1cky01dxp">
+	      <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">39</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">27</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/v1ckydxp" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sunshinedxp@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.cnblogs.com/helica/" title="helica" target="_blank">helica</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://ama2in9.top/" title="ama2in9" target="_blank">ama2in9</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-前言"><span class="nav-number">1.</span> <span class="nav-text">0x00 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-Angora-环境配置、配置"><span class="nav-number">2.</span> <span class="nav-text">0x01 Angora 环境配置、配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-下载源码、安装rust"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 下载源码、安装rust</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-安装LLVM"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 安装LLVM</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-1-通过Angora中的自动化脚本安装"><span class="nav-number">2.2.1.</span> <span class="nav-text">1.2.1 通过Angora中的自动化脚本安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-2-手动源码编译LLVM-7-1-0"><span class="nav-number">2.2.2.</span> <span class="nav-text">1.2.2 手动源码编译LLVM-7.1.0</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-2-1-配置环境变量"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">1.2.2.1  配置环境变量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-编译Angora"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 编译Angora</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-1-系统配置"><span class="nav-number">2.3.1.</span> <span class="nav-text">1.3.1 系统配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-2-运行测试样例"><span class="nav-number">2.3.2.</span> <span class="nav-text">1.3.2 运行测试样例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Angora测试binutils-2-28"><span class="nav-number">3.</span> <span class="nav-text">0x02 Angora测试binutils-2.28</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-编译binutils-2-28"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 编译binutils-2.28</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Fuzzing-readelf"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 Fuzzing readelf</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">v1cky01dxp</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">78.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
