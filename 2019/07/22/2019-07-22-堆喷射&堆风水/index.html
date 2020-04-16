@@ -91,7 +91,7 @@
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15637805995884.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15637811652656.jpg">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15637811745883.jpg">
-<meta property="og:updated_time" content="2019-07-22T15:52:37.660Z">
+<meta property="og:updated_time" content="2020-04-16T07:44:48.275Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Heap Spray（堆喷射）简介">
 <meta name="twitter:description" content="0x00 Heap Spray（堆喷射）堆喷射是在 shellcode 的前面加上大量的slide code（跳板指令），组成一个注入代码段。然后向系统申请大量内存，并且反复用注入代码段来填充。这样就使得内存被大量的注入代码占据。然后通过结合其他漏洞控制程序流，使得程序执行到堆上，最终将导致shellcode的执行。 常见的slide code 有NOP指令，还有一些类NOP指令，比如0x0c,0">
@@ -313,8 +313,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-07-22T23:52:37+08:00">
-                2019-07-22
+              <time title="Post modified" itemprop="dateModified" datetime="2020-04-16T15:44:48+08:00">
+                2020-04-16
               </time>
             
           </span>
@@ -368,7 +368,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  595
+                  594
                 </span>
               
 
@@ -414,8 +414,7 @@
 <p><img src="/images/15637811652656.jpg" alt></p>
 <h4 id="2-覆盖虚函数指针"><a href="#2-覆盖虚函数指针" class="headerlink" title="2. 覆盖虚函数指针"></a>2. 覆盖虚函数指针</h4><p>a. 申请200M内存，以sildecode+shellcode填充。这个时候选择的slidecode不能是0x90。如果用0x90来填充，则虚表里面全是0X90909090，程序会跳转到0X90909090处执行，会导致crash。<br>b. 覆盖函数指针地址为0x0c0c0c0c<br>c. 调用该函数的时候就会跳转到0x0c0c0c0c地址处，最后执行shellocde 。</p>
 <p><img src="/images/15637811745883.jpg" alt></p>
-<h2 id="0xFF-Reference"><a href="#0xFF-Reference" class="headerlink" title="0xFF Reference"></a>0xFF Reference</h2><p><a href="https://www.blackhat.com/presentations/bh-europe-07/Sotirov/Presentation/bh-eu-07-sotirov-apr19.pdf" target="_blank" rel="noopener">https://www.blackhat.com/presentations/bh-europe-07/Sotirov/Presentation/bh-eu-07-sotirov-apr19.pdf</a></p>
-<p><a href="https://blog.csdn.net/magictong/article/details/7391397" target="_blank" rel="noopener">https://blog.csdn.net/magictong/article/details/7391397</a></p>
+<h2 id="0xFF-Reference"><a href="#0xFF-Reference" class="headerlink" title="0xFF Reference"></a>0xFF Reference</h2><p><a href="https://www.blackhat.com/presentations/bh-europe-07/Sotirov/Presentation/bh-eu-07-sotirov-apr19.pdf" target="_blank" rel="noopener">https://www.blackhat.com/presentations/bh-europe-07/Sotirov/Presentation/bh-eu-07-sotirov-apr19.pdf</a><br><a href="https://blog.csdn.net/magictong/article/details/7391397" target="_blank" rel="noopener">https://blog.csdn.net/magictong/article/details/7391397</a></p>
 
       
     </div>
@@ -554,7 +553,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">39</span>
+                  <span class="site-state-item-count">40</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -677,7 +676,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">78.4k</span>
+    <span title="Site words total count">79.1k</span>
   
 </div>
 

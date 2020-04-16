@@ -88,7 +88,7 @@
 <meta property="og:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。   0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://v1ckydxp.github.io/images/15710161322527.jpg">
-<meta property="og:updated_time" content="2019-11-09T13:00:08.632Z">
+<meta property="og:updated_time" content="2020-04-16T08:06:53.350Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AFL fuzz 入门 &amp; 源码分析">
 <meta name="twitter:description" content="0x00 前言​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。   0x01 AFL 简介​    AFL Fuzzing工具的原理是：对源码进行重新编">
@@ -310,8 +310,8 @@
               
                 <span class="post-meta-item-text">Post modified&#58;</span>
               
-              <time title="Post modified" itemprop="dateModified" datetime="2019-11-09T21:00:08+08:00">
-                2019-11-09
+              <time title="Post modified" itemprop="dateModified" datetime="2020-04-16T16:06:53+08:00">
+                2020-04-16
               </time>
             
           </span>
@@ -403,14 +403,14 @@
 
       
         <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>​    昨天又失眠了，一失眠就是到早上五六点，失眠的时候总想找点事情做。想到自己最近看了这么久的AFL都没有总结，这样不太好，不管看了什么，学了什么，都要养成经常总结的习惯，不然过段时间就什么都忘了，主要是经常失眠感觉记忆力明显下降。<br>    这篇主要是记录自己这段阅读源码时坐的一些笔记的整理。  </p>
-<h2 id="0x01-AFL-简介"><a href="#0x01-AFL-简介" class="headerlink" title="0x01 AFL 简介"></a>0x01 AFL 简介</h2><p>​    AFL Fuzzing工具的原理是：对源码进行重新编译时进行插桩，在进行fuzzing时，会把执行了新的tuple或新的tuple命中组的测试样例重新放回语料库进行编译，不断优化种子，来提高代码覆盖率。而且AFL是基于边覆盖率的，之所以没有采用基本块覆盖率是因为大部分的漏洞产生都是由于一些不确定性的跳转或者状态导致，而不是只是单纯的是否执行到了这块代码，所以采用边覆盖率比基于代码覆盖率更有意义。AFL用了一块64KB的共享内存来存放tuple的信息，而且是采用byte来记录tuple的信息，之所以采用byte不是bit是因为还要记录命中数。使用这块有限的共享内存存在碰撞，会导致边覆盖率不准确，这是AFL的一个缺点。</p>
+<h2 id="0x01-AFL-简介"><a href="#0x01-AFL-简介" class="headerlink" title="0x01 AFL 简介"></a>0x01 AFL 简介</h2><p>​    AFL Fuzzing工具的原理是：对源码进行重新编译时进行插桩，在进行fuzzing时，会把执行了新的tuple或新的tuple命中组的测试样例重新放回语料库进行变异，不断优化种子，来提高代码覆盖率。而且AFL是基于边覆盖率的，之所以没有采用基本块覆盖率是因为大部分的漏洞产生都是由于一些不确定性的跳转或者状态导致，而不是只是单纯的是否执行到了这块代码，所以采用边覆盖率比基于代码覆盖率更有意义。AFL用了一块64KB的共享内存来存放tuple的信息，而且是采用byte来记录tuple的信息，之所以采用byte不是bit是因为还要记录命中数。使用这块有限的共享内存存在碰撞，会导致边覆盖率不准确，这是AFL的一个缺点。</p>
 <h2 id="0x02-下载、安装"><a href="#0x02-下载、安装" class="headerlink" title="0x02 下载、安装"></a>0x02 下载、安装</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz</span><br><span class="line">$ tar xvf afl-latest.tgz</span><br><span class="line">$ <span class="built_in">cd</span> afl-2.52b</span><br><span class="line">$ sudo make &amp;&amp; sudo make install</span><br></pre></td></tr></table></figure>
 <h3 id="2-1-报错"><a href="#2-1-报错" class="headerlink" title="2.1 报错"></a>2.1 报错</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[-] Hmm, your system is configured to send core dump notifications to an</span><br><span class="line">    external utility. This will cause issues: there will be an extended delay</span><br><span class="line">    between stumbling upon a crash and having this information relayed to the</span><br><span class="line">    fuzzer via the standard waitpid() API.</span><br><span class="line"></span><br><span class="line">    To avoid having crashes misinterpreted as timeouts, please <span class="built_in">log</span> <span class="keyword">in</span> as root</span><br><span class="line">    and temporarily modify /proc/sys/kernel/core_pattern, like so:</span><br><span class="line"></span><br><span class="line">    <span class="built_in">echo</span> core &gt;/proc/sys/kernel/core_pattern</span><br><span class="line"></span><br><span class="line">[-] PROGRAM ABORT : Pipe at the beginning of <span class="string">'core_pattern'</span></span><br><span class="line">         Location : check_crash_handling(), afl-fuzz.c:7275</span><br></pre></td></tr></table></figure>
 <p>解决方法：</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo su</span><br><span class="line">$ <span class="built_in">echo</span> core &gt;/proc/sys/kernel/core_pattern</span><br></pre></td></tr></table></figure>
 <h2 id="0x03源码分析"><a href="#0x03源码分析" class="headerlink" title="0x03源码分析"></a>0x03源码分析</h2><p>ASAN ： address-Sanitizier，Linux下的内存检测工具<br>afl-as.c : 处理汇编代码，在分支处插入探针（插桩代码），并最终再调用as进行真正的汇编</p>
 <h3 id="3-1-AFL源码目录结构"><a href="#3-1-AFL源码目录结构" class="headerlink" title="3.1 AFL源码目录结构"></a>3.1 AFL源码目录结构</h3><p>以下是afl源码各文件目录的功能说明。 </p>
-<div align="center"><img src="/images/15710161322527.jpg" alt="-w839"><br><br></div>
+<div align="center"><br><img src="/images/15710161322527.jpg" alt="15710161322527"><br><br></div>
 
 <h3 id="3-3-插桩模块分析"><a href="#3-3-插桩模块分析" class="headerlink" title="3.3 插桩模块分析"></a>3.3 插桩模块分析</h3><p>插桩模块的主要代码逻辑在afl-as.c和afl-as.h文件中。afl-as.c文件中主要实现的是对程序进行插桩的逻辑，比如在什么位置进行插桩。afl-as.h文件中实现了插桩代码，在插桩时进行的具体操作。</p>
 <h4 id="3-3-1-afl-as-c源码分析"><a href="#3-3-1-afl-as-c源码分析" class="headerlink" title="3.3.1 afl-as.c源码分析"></a>3.3.1 afl-as.c源码分析</h4><p>afl-as.c文件中，关键逻辑在add_instrumentation()函数，下面主要分析该函数的逻辑。<br>首先打开该文件，循环的读取文件的一行，然后进行一系列的判断。并且会将插桩后的文件写入到modified_file中。</p>
@@ -504,8 +504,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/09/02/2019-09-02-cve-2017-16995 漏洞复现/" rel="next" title="CVE-2017-16995 本地提权漏洞分析与复现">
-                <i class="fa fa-chevron-left"></i> CVE-2017-16995 本地提权漏洞分析与复现
+              <a href="/2019/11/09/2019-10-04-Linux内核页面分配/" rel="next" title="Linux 内核物理页面内存分配">
+                <i class="fa fa-chevron-left"></i> Linux 内核物理页面内存分配
               </a>
             
           </div>
@@ -514,8 +514,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/11/09/2019-10-04-Linux内核页面分配/" rel="prev" title="Linux 内核物理页面内存分配">
-                Linux 内核物理页面内存分配 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/11/10/2019-11-10-fuzz论文总结（一）/" rel="prev" title="FUZZ 论文总结（一）">
+                FUZZ 论文总结（一） <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -594,7 +594,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">39</span>
+                  <span class="site-state-item-count">40</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -717,7 +717,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">78.4k</span>
+    <span title="Site words total count">79.1k</span>
   
 </div>
 
